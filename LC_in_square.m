@@ -1,14 +1,106 @@
 classdef LC_in_square < handle
     
-    % Note: if run as a unified region, construct the model with at most on
-    % nu as input: LC_in_square(varOn,xinit,vinit,tmax,a,nu)
+    % Modified by YW, 2018-07-26
+    % Class-based model in Cube Solver 
+    % 
+    % Minimal examples to run (with default parameter and initial values):
+    %   M = LC_in_square;
+    %   M.solve;
+    %   M.plot;
     %
-    % If run with open close region, input two nu and the first one will be
-    % automatically nu_open and the second one will be nu_close:
-    % LC_in_square(varOn,xinit,vinit,tmax,a,nu_open,nu_close)
+    % ===========================
+    % Detailed instructions:
+    % ===========================
+    % A class of LC_in_square enables us to create a model object and
+    % change its parameter values interactively.
     %
-    % As an extra, you can specify eps where in the close region alpha = alpha + eps
-    % LC_in_square(varOn,xinit,vinit,tmax,a,nu_open,nu_close,eps)
+    % 1, First step of running this solver is always to call its constructor:
+    %
+    %   M = LC_in_square(varOn,xinit,vinit,tmax,a,nu_below,nu_above,eps)
+    %
+    % where 
+    %       varon    -- 'false' by default, setting to 'true' the model will solve the variational problem
+    %       xinit,vinit -- the initial values of x and v (variational problem)
+    %       tmax        -- the endtime of the ode integration  
+    %       a        -- model parameter alpha with default value 0.2
+    %       nu_below,nu_above -- relative change in frequency for regions below and above the wedge defined by function inWedge
+    %       eps      -- perturbation added to parameter alpha
+    % You can enter any number of inputs to the constructor since all of them have pre-defined default values.
+    % However, inputs determine which problem will be solved
+    %
+    %     a) To only find solution trajectory of the model, run 
+    %
+    %                     M = LC_in_square(false,xinit,vinit,tmax,alpha) where vinit can be any 1 by 2 vector
+    %
+    %     b) To solve variational problem w.r.t. instantaneous perturbation, run
+    %
+    %                     M = LC_in_square(true, xinit, vinit, T0, alpha)
+    %
+    %     c) For a uniform static perturbation, 
+    %          i) to find unperturbed solution and the shape response curve, construct the model with the same nonzero nu as input:
+    %
+    %                     M = LC_in_square(true, xinit, vinit, T0, alpha,nu1,nu1)
+    %             where nu_below = nu_above = nu1 needs to be computed using iPRC
+    %
+    %          ii)to find perturbed solution with alpha -> alpha+eps, run
+    %
+    %                     M = LC_in_square(false, xinit_perturb, vinit, tmax,alpha+eps) or 
+    %                     M = LC_in_square(false, xinit_perturb,vinit,tmax, alpha,nu,nu,eps)
+    %
+    %     d) For piecewise static perturbations wher the static perturbation only exists in the region above the wedge,
+    %        type in two different nu and the first one is nu_below and the second one is nu_above:
+    %
+    %                     M = LC_in_square(varOn,xinit,vinit,tmax,alpha,nu_below,nu_above,eps),
+    %        if nu_below~=nu_above, eps will only be added to alpha in the region above the wedge
+    %    
+    %     e) To find iPRC,
+    %                    model = LC_in_square(false, xinit);
+    %                    model.solve;
+    %                    model.find_prc(z0);   % z0 is the initial condition for iPRC
+    %                    model.plot_prc
+    %
+    % 2, After construct a model, typing M in command window and entering will display
+    % all current properties set. In addition to the above four, there are also: 
+    %
+    %           yinit   -- concatenation of xinit and vinit
+    %          domain   -- current domain (0 interior, 1-4 walls)
+    %               t   -- time array
+    %            yext   -- full solution array, each new solution will be appended to new row (yext = [yext; ynew])
+    %             prc   -- phase response curve
+    %              t0   -- current time (scalar)
+    %              y0   -- current solution (same size as yinit)
+    %            Salt   -- array of Saltation matrix (v+ = Sv-)
+    %         t_event   -- keeping the times of events (wall hitting) 
+    %    domain_event   -- domains where trajectory enters
+    %          t_exit   -- keeping the times of leaving walls
+    %     domain_exit   -- domains where trajectory leaves
+    %       Jump_exit   -- array of Jump matrix at exit (z- = Jz+)
+    % 
+    % It is not recommended to manually change any of these values because
+    % they are all counted as model "outputs"
+    % You can check their values any time using the dot reference, such as M.grasper
+    %  
+    % 3, Type "methods(M)" will show the available methods in the model:  
+    % 
+    %           solve   -- requires no input, solve the model with given initial values
+    %            plot   -- requires no input, plot the solutions (alway solve before plot)
+    %      findPeriod   -- requires two guesses L and R, using Bisection method to find an estimated period in [L,R] of the ODE
+    %          LC_ODE   -- ODE of the model, used internally
+    %
+    % ===========================
+    % Some other usage examples:
+    % ===========================
+    % ** Estimate solution period
+    % 
+    %   >> M = LC_in_square;
+    %   >> M.findPeriod 
+    %   ...................
+    %   ans =
+    %
+    %        6.766
+    
+    
+
     
     properties(Constant)
         reltol = 1e-13; % ode15s tolerance
@@ -22,8 +114,8 @@ classdef LC_in_square < handle
     end
     
     properties
-        nu_open
-        nu_close
+        nu_below
+        nu_above
         varOn
         tmax
         alpha
@@ -46,10 +138,11 @@ classdef LC_in_square < handle
     end
     
     methods
-        function model = LC_in_square(varOn,xinit,vinit,tmax,a,nu_open,nu_close,eps)
+        function model = LC_in_square(varOn,xinit,vinit,tmax,a,nu_below,nu_above,eps)
             % Default values
-            model.nu_open = 0.478781045930474;
-            model.nu_close = 0;
+%             model.nu_below = 0.478781045930474;
+            model.nu_below = 0;
+            model.nu_above = 0;
             model.eps = 0;
             model.alpha = 0.2;
             model.tmax = 6.766182958128617;
@@ -72,10 +165,10 @@ classdef LC_in_square < handle
                 model.alpha = a;
             end
             if nargin > 5
-                model.nu_open = nu_open;
+                model.nu_below = nu_below;
             end
             if nargin > 6
-                model.nu_close = nu_close;
+                model.nu_above = nu_above;
             end
             if nargin > 7
                 model.eps = eps;
@@ -204,9 +297,9 @@ classdef LC_in_square < handle
             
             if model.varOn
                 figure
-                plot(model.t,model.yext(:,3),'r','linewidth',2)
+                plot(model.t,model.yext(:,3),'linewidth',2)
                 hold on
-                plot(model.t,model.yext(:,4),'b','linewidth',2)
+                plot(model.t,model.yext(:,4),'linewidth',2)
                 xlabel('Time')
                 ylabel('v1,v2')
                 legend('v1','v2')
@@ -557,8 +650,13 @@ classdef LC_in_square < handle
         end
         
         function h = addon(model, ODEdomain, x, y, dxdt)
-            if model.nu_close == 0
-                h = model.nu_open*dxdt;
+            
+            if (model.nu_above == 0) && (model.nu_below == 0) % if both nu's are zero, the perturbation is instantaneous, so the nonhomogeneous addon is zero
+                h = 0;
+            end
+            
+            if (model.nu_above == model.nu_below) && (model.nu_below ~= 0) % if the input nu's are the same and nonzero
+                h = model.nu_below*dxdt;
                 if ODEdomain == 0 
                     h(1) = h(1) + x;
                     h(2) = h(2) + y;
@@ -569,11 +667,11 @@ classdef LC_in_square < handle
                 end
             end
             
-            if model.nu_close ~=0
-                if ~inTriangle(x,y) % in open region
-                    h = model.nu_open*dxdt;
-                else % in close region
-                    h = model.nu_close*dxdt;
+            if (model.nu_above ~= model.nu_below) && (model.nu_above ~=0)&& (model.nu_below ~=0) % if the nu's are different and nonzero in different subregions
+                if ~inWedge(x,y) % in region below wedge
+                    h = model.nu_below*dxdt;
+                else % in region above the wedge
+                    h = model.nu_above*dxdt;
                     if ODEdomain == 0
                         h(1) = h(1) + x;
                         h(2) = h(2) + y;
@@ -586,15 +684,16 @@ classdef LC_in_square < handle
             end
         end
         
+        
         function a = alphaFcn(model, x, y)
-            if model.nu_close ~= 0 % if there are open/close regions
-                if inTriangle(x, y)
-                    a = model.alpha + model.eps;
+            if model.nu_above ~= model.nu_below % if there are regions with different nu's
+                if inWedge(x, y)
+                    a = model.alpha + model.eps; % perturbation is only present in the given region
                 else
-                    a = model.alpha;
+                    a = model.alpha;             
                 end
-            else
-                a = model.alpha + model.eps;
+            elseif model.nu_above == model.nu_below % if nu's are the same 
+                a = model.alpha + model.eps;     % perturbation is present all the time
             end
         end
         
@@ -629,7 +728,7 @@ function Jx=jumpx() % Jump matrix when entering x=1 or -1 backward in time
     Jx=[0 0;0 1];
 end
 
-function tf = inTriangle(x,y)
+function tf = inWedge(x,y)
 if (x + y >=0 && y - x >=0)
     tf = true;
 else

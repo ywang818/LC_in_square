@@ -1,5 +1,5 @@
-function M=find_prc_INI(model)
-
+function M=find_prc_monodromy(model)
+% This function finds the monodromy matrix associated with the iPRC
 
 zinit_matrix=eye(2);
 M=[];

@@ -1,27 +1,26 @@
-% Solve the nonhomogeneous variational equation for the shape response curve 
-% under static perturbation: alpha -> alpha+eps
+% Solve the nonhomogeneous variational equation for the shape response curve under static perturbation: alpha -> alpha+eps
 
-% Need to run prc_plot.m first to find nu's
+% Need to run prc_plot.m first to find nu1
 
 
 T0=6.766182958128617; % intrinsic period of the oscillator
-nu1=0.498678192193239;
+nu1=0.498678192193239; % relative change in frequency computed from prc_plot
 
 alpha = 0.2;
 eps = 0.001; % static perturbation on model parameter alpha
 alpha_pert = alpha + eps;
 varOn = true;
-yinit=[1, alpha];
-yinit_pert=[1, alpha_pert];
+yinit=[1, alpha];   % liftoff point for unperturbed trajectory
+yinit_pert=[1, alpha_pert]; % liftoff point for perturbed trajectory
 vinit = yinit_pert-yinit;
 tmax = 40;
 
 % find the unperturbed solutions and the shape response curves
-model = LC_in_square(varOn, yinit, vinit/eps, T0, alpha,nu1);
+model = LC_in_square(varOn, yinit, vinit/eps, T0, alpha,nu1,nu1);
 model.solve;
 
 % find the new period after perturbation using function findPeriod 
-model_pert = LC_in_square(false, yinit_pert, [0 0], tmax, alpha_pert,0);
+model_pert = LC_in_square(false, yinit_pert, [0 0], tmax, alpha_pert);
 model_pert.solve;
 Teps=model_pert.findPeriod;
 
