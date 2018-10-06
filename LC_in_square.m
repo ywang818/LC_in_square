@@ -1,8 +1,9 @@
 classdef LC_in_square < handle
     
-    % Modified by YW, 2018-07-26
-    % Class-based model in Cube Solver 
-    % 
+    % Created by YW, 2018-07-26
+    % Find Linear Shape and Timing Responses of a Limit Cycle with Sliding Components 
+    % under instantaneous/static perturbation
+    %
     % Minimal examples to run (with default parameter and initial values):
     %   M = LC_in_square;
     %   M.solve;
@@ -16,53 +17,67 @@ classdef LC_in_square < handle
     %
     % 1, First step of running this solver is always to call its constructor:
     %
-    %   M = LC_in_square(varOn,xinit,vinit,tmax,a,nu_below,nu_above,eps)
+    %   M = LC_in_square(varargin)
     %
-    % where 
-    %       varon    -- 'false' by default, setting to 'true' the model will solve the variational problem
+    % with the following optional Name-Value pairs
+    %       varon       -- 'false' by default, setting to 'true' the model will solve the variational problem
     %       xinit,vinit -- the initial values of x and v (variational problem)
-    %       tmax        -- the endtime of the ode integration  
-    %       a        -- model parameter alpha with default value 0.2
-    %       nu_below,nu_above -- relative change in frequency for regions below and above the wedge defined by function inWedge
-    %       eps      -- perturbation added to parameter alpha
+    %       tmax        -- the endtime of the ode integration
+    %       alpha       -- model parameter alpha with default value 0.2
+    %       omega       -- model parameter omega with default value 1
+    %       nu          -- relative change in frequency for regions below and above the wedge defined by function inWedge
+    %       eps         -- perturbation added to parameters: (alpha, omega) -> (alpha+eps, omega-eps) 
     % You can enter any number of inputs to the constructor since all of them have pre-defined default values.
     % However, inputs determine which problem will be solved
     %
-    %     a) To only find solution trajectory of the model, run 
+    %     a) To only find solution trajectory of the model, run
     %
-    %                     M = LC_in_square(false,xinit,vinit,tmax,alpha) where vinit can be any 1 by 2 vector
+    %                     M = LC_in_square('xinit', xinit) 
     %
     %     b) To solve variational problem w.r.t. instantaneous perturbation, run
     %
-    %                     M = LC_in_square(true, xinit, vinit, T0, alpha)
+    %                     M = LC_in_square('varOn', true, 'xinit', xinit, 'vinit', vinit)
     %
-    %     c) For a uniform static perturbation, 
-    %          i) to find unperturbed solution and the shape response curve, construct the model with the same nonzero nu as input:
+    %     c) For a uniform static perturbation: (alpha, omega) -> (alpha + eps, omega - eps),
+    %        construct the model with a **SCALAR** nu as input
     %
-    %                     M = LC_in_square(true, xinit, vinit, T0, alpha,nu1,nu1)
-    %             where nu_below = nu_above = nu1 needs to be computed using iPRC
+    %          i) To find unperturbed solution and the shape response curve, run
     %
-    %          ii)to find perturbed solution with alpha -> alpha+eps, run
+    %                     M = LC_in_square('varOn', true, 'xinit', xinit, 'vinit', vinit, 'nu', nu)
+    
+    %             where nu needs to be computed using iPRC
     %
-    %                     M = LC_in_square(false, xinit_perturb, vinit, tmax,alpha+eps) or 
-    %                     M = LC_in_square(false, xinit_perturb,vinit,tmax, alpha,nu,nu,eps)
+    %          ii) To find perturbed solution, run 
     %
-    %     d) For piecewise static perturbations wher the static perturbation only exists in the region above the wedge,
-    %        type in two different nu and the first one is nu_below and the second one is nu_above:
+    %                     M = LC_in_square('xinit', xinit_perturb, 'alpha', alpha + eps, 'omega', omega + eps) 
+    %              or
+    %                     M = LC_in_square('xinit', xinit_perturb, 'eps', eps)
     %
-    %                     M = LC_in_square(varOn,xinit,vinit,tmax,alpha,nu_below,nu_above,eps),
-    %        if nu_below~=nu_above, eps will only be added to alpha in the region above the wedge
-    %    
+    %              where nu takes the default value 0
+    %
+    %     d) For piecewise static perturbations, where the perturbation (alpha, omega) -> (alpha + eps, omega - eps)
+    %        is only present in the region above the wedge, 
+    %        construct the model with a **VECTOR** nu with the first element nu_below and the second element nu_above
+    %
+    %          i) To find unperturbed solution and the corresponding iSRC, run
+    %
+    %          M = LC_in_square('varOn', true, 'xinit', xinit, 'vinit', vinit, 'nu', [nu_below, nu_above])
+    %
+    %
+    %        ii) To find perturbed solution, run
+    %
+    %          M = LC_in_square('xinit', xinit, 'vinit', vinit, 'nu', [0, 0], 'eps', eps)
+    %
     %     e) To find iPRC,
-    %                    model = LC_in_square(false, xinit);
-    %                    model.solve;
-    %                    model.find_prc(z0);   % z0 is the initial condition for iPRC
-    %                    model.plot_prc
+    %                    M = LC_in_square('xinit', xinit);
+    %                    M.solve;
+    %                    M.find_prc(z0);   % z0 is the initial condition for iPRC found by running find_prc_monodromy
+    %                    M.plot_prc
     %
-    % 2, After construct a model, typing M in command window and entering will display
-    % all current properties set. In addition to the above four, there are also: 
+    %  2, After constructing a model, typing M in command window and entering will display
+    %     all current properties set. In addition to the above eight, there are also:
     %
-    %           yinit   -- concatenation of xinit and vinit
+    %           yinit   -- concatenation of xinit and vinit if varOn = true
     %          domain   -- current domain (0 interior, 1-4 walls)
     %               t   -- time array
     %            yext   -- full solution array, each new solution will be appended to new row (yext = [yext; ynew])
@@ -70,38 +85,39 @@ classdef LC_in_square < handle
     %              t0   -- current time (scalar)
     %              y0   -- current solution (same size as yinit)
     %            Salt   -- array of Saltation matrix (v+ = Sv-)
-    %         t_event   -- keeping the times of events (wall hitting) 
+    %         t_event   -- keeping the times of events (wall hitting)
     %    domain_event   -- domains where trajectory enters
     %          t_exit   -- keeping the times of leaving walls
     %     domain_exit   -- domains where trajectory leaves
     %       Jump_exit   -- array of Jump matrix at exit (z- = Jz+)
-    % 
-    % It is not recommended to manually change any of these values because
-    % they are all counted as model "outputs"
-    % You can check their values any time using the dot reference, such as M.grasper
-    %  
-    % 3, Type "methods(M)" will show the available methods in the model:  
-    % 
+    %     isPiecewise   -- 0 if nu is typed in as a scalar, 1 if nu is typed in as a vector
+    %
+    %   It is not recommended to manually change any of these values because
+    %   they are all counted as model "outputs"
+    %   You can check their values any time using the dot reference, such as M.domain
+    %
+    % 3, Type "methods(M)" will show the available methods in the model:
+    %
     %           solve   -- requires no input, solve the model with given initial values
     %            plot   -- requires no input, plot the solutions (alway solve before plot)
-    %      findPeriod   -- requires two guesses L and R, using Bisection method to find an estimated period in [L,R] of the ODE
+    %        find_prc   -- requires the initial value for iPRC/lTRC as an input,
+    %                      solve the adjoint equation backward in time with given input (always solve the model before find_prc)
+    %        plot_prc   -- requires no input, plot the iPRC/lTRC solutions (always find_prc before plot_prc)
+    %      findPeriod   -- requires running the model with tmax big enough
     %          LC_ODE   -- ODE of the model, used internally
     %
     % ===========================
     % Some other usage examples:
     % ===========================
     % ** Estimate solution period
-    % 
-    %   >> M = LC_in_square;
-    %   >> M.findPeriod 
-    %   ...................
+    %
+    %  >> M=LC_in_square('xinit',[1,0.2],'vinit',[1 0],'tmax',20);
+    %  >> M.solve
+    %  >> M.findPeriod
     %   ans =
     %
-    %        6.766
-    
-    
-
-    
+    %        6.7662
+        
     properties(Constant)
         reltol = 1e-13; % ode15s tolerance
         abstol = 1e-13; % ode15s tolerance
@@ -119,10 +135,11 @@ classdef LC_in_square < handle
         varOn
         tmax
         alpha
+        omega
         eps
         domain
         t = [];
-        reverseTspan=[]; % Full unique time after being reversed (remove duplicate) 
+        reverseTspan=[]; % Full unique time after being reversed (remove duplicate)
         yext = [];
         prct=[]; % time for prc
         prc=[]; % phase response solution
@@ -132,47 +149,62 @@ classdef LC_in_square < handle
     end
     
     properties(Access = protected)
-        S0;
+        S0
         t0
         y0
     end
     
+    properties(SetAccess = private)
+        isPiecewise
+    end
+    
     methods
-        function model = LC_in_square(varOn,xinit,vinit,tmax,a,nu_below,nu_above,eps)
-            % Default values
-%             model.nu_below = 0.478781045930474;
-            model.nu_below = 0;
-            model.nu_above = 0;
-            model.eps = 0;
-            model.alpha = 0.2;
-            model.tmax = 6.766182958128617;
-            model.vinit = [0.01, 0];
-            model.xinit = [0.9, -0.9];
-            model.varOn = false;
-            if nargin > 0
-                model.varOn = varOn;
+        
+        function model = LC_in_square(varargin)    
+            
+            p = inputParser;
+            addOptional(p, 'varOn', false, @(x)validateattributes(x,...
+                {'logical'},{'nonempty'}));
+            addOptional(p, 'xinit', [0.9, -0.9], @(x)validateattributes(x,...
+                {'numeric'},{'nonempty'}));
+            addOptional(p, 'vinit', [0.01, 0], @(x)validateattributes(x,...
+                {'numeric'},{'nonempty'}));
+            addOptional(p, 'tmax', 6.766182958128617, @(x)validateattributes(x,...
+                {'numeric'},{'nonempty'}));
+            addOptional(p, 'alpha', 0.2, @(x)validateattributes(x,...
+                {'numeric'},{'nonempty'}));
+            addOptional(p, 'omega', 1, @(x)validateattributes(x,...
+                {'numeric'},{'nonempty'}));
+            addOptional(p, 'nu', 0, @(x)validateattributes(x,...
+                {'numeric'},{'nonempty'}));
+            addOptional(p, 'eps', 0, @(x)validateattributes(x,...
+                {'numeric'},{'nonempty'}));
+            
+            parse(p, varargin{:})
+            
+            nu = p.Results.nu;
+            
+            % If the input nu is a vector, then the perturbation is piecewise uniform; 
+            % if nu is a scalar, then the perturbation is uniform
+            if length(nu) > 1
+                model.isPiecewise = true;
+                model.nu_below = nu(1);
+                model.nu_above = nu(2);
+            else
+                model.isPiecewise = false;
+                model.nu_below = nu;
+                model.nu_above = nu;
             end
-            if nargin > 1
-                model.xinit = reshape(xinit,1,length(xinit));
-            end
-            if nargin > 2
-                model.vinit = reshape(vinit,1,length(vinit));
-            end
-            if nargin > 3
-                model.tmax = tmax;
-            end
-            if nargin > 4
-                model.alpha = a;
-            end
-            if nargin > 5
-                model.nu_below = nu_below;
-            end
-            if nargin > 6
-                model.nu_above = nu_above;
-            end
-            if nargin > 7
-                model.eps = eps;
-            end
+            
+            model.eps = p.Results.eps;            
+            model.alpha = p.Results.alpha;
+            model.omega = p.Results.omega;
+            model.tmax = p.Results.tmax;
+            model.vinit = p.Results.vinit;
+            model.xinit = p.Results.xinit;
+            model.varOn = p.Results.varOn;            
+            model.xinit = reshape(model.xinit,1,length(model.xinit));
+            model.vinit = reshape(model.vinit,1,length(model.vinit));
             
             model.domain = 0;
             if model.varOn
@@ -275,7 +307,7 @@ classdef LC_in_square < handle
             xlim([0 model.tmax])
             set(gca,'FontSize',18)
             xlabel('Time','interpreter','latex','fontsize',25)
-  
+            
             subplot(2,1,2)
             plot(model.prct,model.prc(:,1:2),'linewidth',2)
             legend('Z_x','Z_y')
@@ -287,9 +319,9 @@ classdef LC_in_square < handle
             
             set(gca,'FontSize',18)
             xlabel('Time','interpreter','latex','fontsize',25)
-            ylabel('iPRC','interpreter','latex','fontsize',25)                     
+            ylabel('iPRC','interpreter','latex','fontsize',25)
         end
-            
+        
         function plot(model)
             figure
             plot(model.yext(:,1),model.yext(:,2),'k','linewidth',2)
@@ -308,12 +340,22 @@ classdef LC_in_square < handle
         end
         
         function T = findPeriod(model)
-            [~,ind] = findpeaks(model.yext(:,2),'MinPeakProminence',1);
-            if length(ind) < 10
-                warning(['!!! Caution, the period found might be inaccurate, '...
-                'only found %d peaks (target: 10), consider using longer tmax'], length(ind));
+            y_temp = model.yext(:,2);
+            t_temp = model.t;
+            k = []; % indicies of peaks
+            for i = 1:length(t_temp)
+                if i ~= 1 && (y_temp(i) == 1) && (y_temp(i-1) ~=1)
+                    % log the index when the signal reaches 1.
+                    k(end+1) = i;
+                end
             end
-            T = mean(diff(model.t(ind(1:end))));
+            
+            if length(k) < 2
+                warning(['Unable to calculate the period. '...
+                    'Only found %d peak in the solution, consider using a larger tmax!'], length(k));
+            end
+            
+            T = mean(diff(t_temp(k)));
         end
         
         function find_prc(model, z0)
@@ -326,7 +368,7 @@ classdef LC_in_square < handle
             model.prc = [];
             options_prc=odeset('BDF','on','RelTol',model.reltol,...
                 'AbsTol',model.abstol,'Events',@model.exit_wall);
-           
+            
             [model.reverseTspan, Ind] = unique(wrev(model.t),'stable');
             if isempty(model.reverseTspan)
                 error('Solve the model first before calling find_prc!');
@@ -350,7 +392,7 @@ classdef LC_in_square < handle
                         dom=1;
                         if ~isempty(IE)
                             IE = IE(end);
-                            TE = TE(end); 
+                            TE = TE(end);
                         end
                         if counter >= numel(model.t_exit)
                             break;
@@ -359,7 +401,7 @@ classdef LC_in_square < handle
                         J=model.Jump_exit{IE};
                         z0 = znew(end,1:2)*J';
                         counter = counter + 1;
-                        dom=0;                        
+                        dom=0;
                 end
             end
         end
@@ -376,8 +418,8 @@ classdef LC_in_square < handle
                 ODEdomain = model.domain;
             end
             
-            a = model.alphaFcn(y(1),y(2));
-            dydt=[a,-1;1,a]*y;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            dydt=[a,-b;b,a]*y;
             
             switch ODEdomain
                 case 1
@@ -404,8 +446,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall1_exit(model,~,y)
             % when the *unconstrained* value of dx/dt decreases through zero, return
             y(1)=1;
-            a = model.alphaFcn(y(1),y(2));
-            dydt=[a,-1;1,a]*y;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            dydt=[a,-b;b,a]*y;
             value=dydt(1);
             isterminal=1;
             direction=-1;
@@ -415,8 +457,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall2_exit(model,~,y)
             % when the *unconstrained* value of dy/dt decreases through zero, return
             y(2)=1;
-            a = model.alphaFcn(y(1),y(2));
-            dydt=[a,-1;1,a]*y;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            dydt=[a,-b;b,a]*y;
             value=dydt(2);
             isterminal=1;
             direction=-1;
@@ -426,8 +468,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall3_exit(model,~,y)
             % when the *unconstrained* value of dx/dt increases through zero, return
             y(1)=-1;
-            a = model.alphaFcn(y(1),y(2));
-            dydt=[a,-1;1,a]*y;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            dydt=[a,-b;b,a]*y;
             value=dydt(1);
             isterminal=1;
             direction=1;
@@ -437,8 +479,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall4_exit(model,~,y)
             % when the *unconstrained* value of dy/dt increases through zero, return
             y(2)=-1;
-            a = model.alphaFcn(y(1),y(2));
-            dydt=[a,-1;1,a]*y;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            dydt=[a,-b;b,a]*y;
             value=dydt(2);
             isterminal=1;
             direction=1;
@@ -456,11 +498,11 @@ classdef LC_in_square < handle
             end
             x=y(1:2);
             v=y(3:4);
-            a = model.alphaFcn(x(1),x(2));
-            dxdt=[a,-1;1,a]*x;
+            [a, b] = model.alphaFcn(x(1),x(2));
+            dxdt=[a,-b;b,a]*x;
             switch ODEdomain
                 case 0
-                    dvdt=[a,-1;1,a]*v;
+                    dvdt=[a,-b;b,a]*v;
                 case 1 % x=1 wall
                     dxdt(1)=min(dxdt(1),0); % only allow negative dx/dt or else zero
                     dvdt=[0,0;0,a]*v;
@@ -479,7 +521,7 @@ classdef LC_in_square < handle
                     % dvdt(1)=dvdt(1)+y(1);
             end
             % add nonhomogeneous terms to variational problem for sustained perturbation
-            % nu * F(x(t)) + DF/Deps; DF/Deps=[x; y] 
+            % nu*F(x(t)) + DFeps/Deps; DF/Deps=[x+y; -x+y]
             dvdt = dvdt + model.addon(ODEdomain,x(1),x(2),dxdt);
             dydt=[dxdt;dvdt];
         end
@@ -488,8 +530,8 @@ classdef LC_in_square < handle
             
             xvec = interp1(model.reverseTspan,xmat,t);
             
-            a = model.alphaFcn(xvec(1),xvec(2));
-            DF=[a,-1;1,a];
+            [a, b] = model.alphaFcn(xvec(1),xvec(2));
+            DF=[a,-b;b,a];
             switch model.checkdomain(xvec)
                 case 1 % x=1 wall
                     %dxdt(1)=min(dxdt(1),0); % only allow negative dx/dt or else zero
@@ -510,8 +552,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall1_exit_ext(model,~,y)
             % when the *unconstrained* value of dx/dt decreases through zero, return
             y(1)=1;
-            a = model.alphaFcn(y(1),y(2));
-            value=y(2)-a;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(2)-a;
             isterminal=1;
             direction=1;
             
@@ -520,8 +562,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall2_exit_ext(model,~,y)
             % when the *unconstrained* value of dy/dt decreases through zero, return
             y(2)=1;
-            a = model.alphaFcn(y(1),y(2));
-            value=y(1)+a;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(1)+a;
             isterminal=1;
             direction=-1;
             
@@ -530,8 +572,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall3_exit_ext(model,~,y)
             % when the *unconstrained* value of dx/dt increases through zero, return
             y(1)=-1;
-            a = model.alphaFcn(y(1),y(2));
-            value=y(2)+a;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(2)+a;
             isterminal=1;
             direction=-1;
             
@@ -540,8 +582,8 @@ classdef LC_in_square < handle
         function [value,isterminal,direction]=wall4_exit_ext(model,~,y)
             % when the *unconstrained* value of dy/dt increases through zero, return
             y(2)=-1;
-            a = model.alphaFcn(y(1),y(2));
-            value=y(1)-a;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(1)-a;
             isterminal=1;
             direction=1;
             
@@ -587,48 +629,38 @@ classdef LC_in_square < handle
             end
         end
         
-        function multiplySaltation(model,TE,YE,flag) % multiply fundMatrix by saltation matrix S
+        function multiplySaltation(model,TE,YE,flag) % multiply fundMatrix by saltation matrix S [JPG: the exit flag is never used. is this because we already know the saltation matrix at liftoff is identity? should it be used anyway for validation?]
             na=[1,0]; % na is the normal vector to wall 1 and 3
             nb=[0,1]; % nb is the normal vector to wall 2 and 4
             X=YE(:,1:2)';
-            S1=[];
             if ~isempty(TE)
-                dydtdom = model.LC_ODE(TE,X);
-                dydt0 = model.LC_ODE(TE,X,0);
+                dydtdom = model.LC_ODE(TE,X); % vector field of the wall
+                dydt0 = model.LC_ODE(TE,X,0); % vector field of the interior
+                if strcmp(flag,'enter')
+                    F_plus  = dydtdom; % new vector field after entering wall
+                    F_minus = dydt0;   % old vector field before entering wall
+                elseif strcmp(flag,'exit')
+                    F_plus  = dydt0;   % new vector field after exiting wall
+                    F_minus = dydtdom; % old vector field before exiting wall
+                else
+                    error('flag for multiplySaltation must be "enter" or "exit"!');
+                end
                 switch model.domain
                     case 1
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*na/(na*dydt0); %saltation matrix when entering wall 1
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*nb/(nb*dydtdom);%saltation matrix when exit wall 1
-                        end
-                        
+                        n = na;
                     case 2
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*nb/(nb*dydt0); %saltation matrix when entering wall 2
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*na/(na*dydtdom);%saltation matrix when exit wall 2
-                        end
+                        n = nb;
                     case 3
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*na/(na*dydt0); %saltation matrix when entering wall 3
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*nb/(nb*dydtdom);%saltation matrix when exit wall 3
-                        end
+                        n = na;
                     case 4
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*nb/(nb*dydt0); %saltation matrix when entering wall 4
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*na/(na*dydtdom);%saltation matrix when exit wall 4
-                        end
+                        n = nb;
                 end
+                S1=eye(2)+(F_plus-F_minus)*n/(n*F_minus); % saltation matrix, eq. 3.22
                 model.y0(3:4) = [YE(3),YE(4)]*S1';
             end
+            
         end
+        
         
         function storeJump(model, TE)
             if isempty(TE)
@@ -651,49 +683,57 @@ classdef LC_in_square < handle
         
         function h = addon(model, ODEdomain, x, y, dxdt)
             
-            if (model.nu_above == 0) && (model.nu_below == 0) % if both nu's are zero, the perturbation is instantaneous, so the nonhomogeneous addon is zero
+            % if both nu's are zero, the nonhomogeneous addon is zero
+            if (model.nu_above == 0) && (model.nu_below == 0) 
                 h = 0;
             end
             
-            if (model.nu_above == model.nu_below) && (model.nu_below ~= 0) % if the input nu's are the same and nonzero
+            % if it is a uniformly perturbed problem and nu's are not 0
+            if ~model.isPiecewise && (model.nu_below ~= 0)
                 h = model.nu_below*dxdt;
-                if ODEdomain == 0 
-                    h(1) = h(1) + x;
-                    h(2) = h(2) + y;
+                if ODEdomain == 0
+                    h(1) = h(1) + x + y;
+                    h(2) = h(2) + y - x;
                 elseif ODEdomain == 1 || ODEdomain == 3
-                    h(2) = h(2) + y;
+                    h(2) = h(2) + y - x;
                 elseif ODEdomain == 2 || ODEdomain == 4
-                    h(1) = h(1) + x;
+                    h(1) = h(1) + x + y;
                 end
             end
             
-            if (model.nu_above ~= model.nu_below) && (model.nu_above ~=0)&& (model.nu_below ~=0) % if the nu's are different and nonzero in different subregions
-                if ~inWedge(x,y) % in region below wedge
+            % if it is a piecewisely perturbed problem when the perturbation only exists in the region above the wedge,
+            if model.isPiecewise && (model.nu_above ~=0) && (model.nu_below ~=0)
+                if ~inWedge(x,y) % dF/deps=0 in region below wedge
                     h = model.nu_below*dxdt;
-                else % in region above the wedge
-                    h = model.nu_above*dxdt;
+                else % in region above the wedge where the perturbation exists
+                    h = model.nu_above*dxdt;                    
                     if ODEdomain == 0
-                        h(1) = h(1) + x;
-                        h(2) = h(2) + y;
+                        h(1) = h(1) + x + y;
+                        h(2) = h(2) + y - x;
                     elseif ODEdomain == 1 || ODEdomain == 3
-                        h(2) = h(2) + y;
+                        h(2) = h(2) + y - x;
                     elseif ODEdomain == 2 || ODEdomain == 4
-                        h(1) = h(1) + x;
+                        h(1) = h(1) + x + y;
                     end
                 end
             end
         end
         
         
-        function a = alphaFcn(model, x, y)
-            if model.nu_above ~= model.nu_below % if there are regions with different nu's
-                if inWedge(x, y)
-                    a = model.alpha + model.eps; % perturbation is only present in the given region
-                else
-                    a = model.alpha;             
+        function [a, b] = alphaFcn(model, x, y)
+            % if the perturbation is piecewise
+            if model.isPiecewise
+                if inWedge(x, y)  % perturbation is present in region above the wedge
+                    a = model.alpha + model.eps; 
+                    b = model.omega - model.eps; 
+                else              % perturbation is absent in region below the wedge
+                    a = model.alpha;
+                    b = model.omega;
                 end
-            elseif model.nu_above == model.nu_below % if nu's are the same 
-                a = model.alpha + model.eps;     % perturbation is present all the time
+            % if the perturbation is uniform, perturbation is present over the full region    
+            else
+                a = model.alpha + model.eps;     
+                b = model.omega - model.eps;     
             end
         end
         
@@ -701,31 +741,31 @@ classdef LC_in_square < handle
             domain = 0;
             x=xinit(1);
             y=xinit(2);
-%             if ~model.varOn
-%                 x = model.xinit(1);
-%                 y = model.xinit(2);
-                
-                if x==1
-                    domain = 1;
-                elseif y==1
-                    domain = 2;
-                elseif x==-1
-                    domain = 3;
-                elseif y==-1
-                    domain = 4;
-                end
+            %             if ~model.varOn
+            %                 x = model.xinit(1);
+            %                 y = model.xinit(2);
+            
+            if x==1
+                domain = 1;
+            elseif y==1
+                domain = 2;
+            elseif x==-1
+                domain = 3;
+            elseif y==-1
+                domain = 4;
             end
-%         end
+        end
+        %         end
     end
 end
 
 %% Jump matrices
 function Jy=jumpy() % Jump matrix when entering y=-1 or 1 backward in time
-    Jy=[1 0;0 0];
+Jy=[1 0;0 0];
 end
 
 function Jx=jumpx() % Jump matrix when entering x=1 or -1 backward in time
-    Jx=[0 0;0 1];
+Jx=[0 0;0 1];
 end
 
 function tf = inWedge(x,y)
