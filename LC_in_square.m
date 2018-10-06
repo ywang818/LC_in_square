@@ -1,7 +1,7 @@
 classdef LC_in_square < handle
     
     % Modified by YW, 2018-07-26
-    % Class-based model in Cube Solver 
+    % Class-based model in Cube Solver [JPG: "Cube"? LC in 3D?]
     % 
     % Minimal examples to run (with default parameter and initial values):
     %   M = LC_in_square;
@@ -20,32 +20,32 @@ classdef LC_in_square < handle
     %
     % where 
     %       varon    -- 'false' by default, setting to 'true' the model will solve the variational problem
-    %       xinit,vinit -- the initial values of x and v (variational problem)
+    %       xinit,vinit -- the initial values of x and v (variational problem) [JPG: u is used for pert throughout paper. can we use u instead of v in code?]
     %       tmax        -- the endtime of the ode integration  
     %       a        -- model parameter alpha with default value 0.2
-    %       nu_below,nu_above -- relative change in frequency for regions below and above the wedge defined by function inWedge
-    %       eps      -- perturbation added to parameter alpha
+    %       nu_below,nu_above -- relative change in frequency for regions below and above the wedge defined by function inWedge [JPG: these are the time rescaling factors?]
+    %       eps      -- perturbation added to parameter alpha [JPG: persistent? in wedge only?]
     % You can enter any number of inputs to the constructor since all of them have pre-defined default values.
     % However, inputs determine which problem will be solved
     %
     %     a) To only find solution trajectory of the model, run 
     %
-    %                     M = LC_in_square(false,xinit,vinit,tmax,alpha) where vinit can be any 1 by 2 vector
+    %                     M = LC_in_square(false,xinit,vinit,tmax,alpha) where vinit can be any 1 by 2 vector [JPG: vinit is discarded if varOn is false?]
     %
     %     b) To solve variational problem w.r.t. instantaneous perturbation, run
     %
-    %                     M = LC_in_square(true, xinit, vinit, T0, alpha)
+    %                     M = LC_in_square(true, xinit, vinit, T0, alpha) [JPG: "... where T0 is exactly one period"]
     %
     %     c) For a uniform static perturbation, 
     %          i) to find unperturbed solution and the shape response curve, construct the model with the same nonzero nu as input:
     %
     %                     M = LC_in_square(true, xinit, vinit, T0, alpha,nu1,nu1)
-    %             where nu_below = nu_above = nu1 needs to be computed using iPRC
+    %             where nu_below = nu_above = nu1 needs to be computed using iPRC [JPG: where in the paper does computing nu's from iPRC happen?]
     %
     %          ii)to find perturbed solution with alpha -> alpha+eps, run
     %
     %                     M = LC_in_square(false, xinit_perturb, vinit, tmax,alpha+eps) or 
-    %                     M = LC_in_square(false, xinit_perturb,vinit,tmax, alpha,nu,nu,eps)
+    %                     M = LC_in_square(false, xinit_perturb,vinit,tmax, alpha,nu,nu,eps) [JPG: does "or" here mean they are equivalent? passing eps as the final arg is the same as adding it to alpha in the first case?]
     %
     %     d) For piecewise static perturbations wher the static perturbation only exists in the region above the wedge,
     %        type in two different nu and the first one is nu_below and the second one is nu_above:
@@ -62,30 +62,30 @@ classdef LC_in_square < handle
     % 2, After construct a model, typing M in command window and entering will display
     % all current properties set. In addition to the above four, there are also: 
     %
-    %           yinit   -- concatenation of xinit and vinit
+    %           yinit   -- concatenation of xinit and vinit [JPG: "... if varOn is true"]
     %          domain   -- current domain (0 interior, 1-4 walls)
     %               t   -- time array
-    %            yext   -- full solution array, each new solution will be appended to new row (yext = [yext; ynew])
+    %            yext   -- full solution array, each new solution will be appended to new row (yext = [yext; ynew]) [JPG: "ext" means what?]
     %             prc   -- phase response curve
-    %              t0   -- current time (scalar)
-    %              y0   -- current solution (same size as yinit)
-    %            Salt   -- array of Saltation matrix (v+ = Sv-)
-    %         t_event   -- keeping the times of events (wall hitting) 
-    %    domain_event   -- domains where trajectory enters
+    %              t0   -- current time (scalar) [JPG: t0 not a public property]
+    %              y0   -- current solution (same size as yinit) [JPG: y0 not a public property]
+    %            Salt   -- array of Saltation matrix (v+ = Sv-) [JPG: Salt not defined. meant "S1"? also not a public property]
+    %         t_event   -- keeping the times of events (wall hitting) [JPG: t_event not a public property]
+    %    domain_event   -- domains where trajectory enters [JPG: domain_event not defined at all]
     %          t_exit   -- keeping the times of leaving walls
-    %     domain_exit   -- domains where trajectory leaves
+    %     domain_exit   -- domains where trajectory leaves [JPG: domain_exit not defined at all]
     %       Jump_exit   -- array of Jump matrix at exit (z- = Jz+)
     % 
     % It is not recommended to manually change any of these values because
     % they are all counted as model "outputs"
-    % You can check their values any time using the dot reference, such as M.grasper
+    % You can check their values any time using the dot reference, such as M.grasper [JPG: grasper not defined at all]
     %  
     % 3, Type "methods(M)" will show the available methods in the model:  
     % 
     %           solve   -- requires no input, solve the model with given initial values
-    %            plot   -- requires no input, plot the solutions (alway solve before plot)
-    %      findPeriod   -- requires two guesses L and R, using Bisection method to find an estimated period in [L,R] of the ODE
-    %          LC_ODE   -- ODE of the model, used internally
+    %            plot   -- requires no input, plot the solutions (alway solve before plot) [JPG: also plot_prc]
+    %      findPeriod   -- requires two guesses L and R, using Bisection method to find an estimated period in [L,R] of the ODE [JPG: this method doesn't actually take any args]
+    %          LC_ODE   -- ODE of the model, used internally [JPG: LC_ODE not a public M method]
     %
     % ===========================
     % Some other usage examples:
@@ -93,7 +93,7 @@ classdef LC_in_square < handle
     % ** Estimate solution period
     % 
     %   >> M = LC_in_square;
-    %   >> M.findPeriod 
+    %   >> M.findPeriod [JPG: this example doesn't work. must both increase tmax and then solve first.]
     %   ...................
     %   ans =
     %
@@ -132,7 +132,7 @@ classdef LC_in_square < handle
     end
     
     properties(Access = protected)
-        S0;
+        S0; % [JPG: this is initialized but never used. S1 is used later. is S0 obsolete?]
         t0
         y0
     end
@@ -177,7 +177,7 @@ classdef LC_in_square < handle
             model.domain = 0;
             if model.varOn
                 model.yinit = [model.xinit, model.vinit];
-                model.S0 = eye(2);
+                model.S0 = eye(2); % [JPG: never used]
             else
                 model.yinit = model.xinit;
             end
@@ -189,7 +189,7 @@ classdef LC_in_square < handle
             % Initialize
             model.t0 = 0;
             model.y0 = model.yinit;
-            model.domain = 0;
+            model.domain = 0; % [JPG: assuming we start in interior. what if start on wall?]
             model.t = []; % Full time
             model.yext = []; % Full solution
             
@@ -207,6 +207,7 @@ classdef LC_in_square < handle
             options3_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall3_exit_ext);
             options4_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall4_exit_ext);
             while model.t0 < model.tmax
+                disp(['entering domain ', num2str(model.domain), ' at time t = ', num2str(model.t0)])
                 switch model.domain
                     case 0 % interior
                         if model.varOn
@@ -396,7 +397,7 @@ classdef LC_in_square < handle
                 y(1)-1;...  % when x crosses 1 from below (wall 1)
                 y(2)-1;...  % when y crosses 1 from below (wall 2)
                 y(1)+1;...  % when x crosses -1 from above (wall 3)
-                y(2)+1];    % when y crosses -1 from below (wall 4)
+                y(2)+1];    % when y crosses -1 from below (wall 4) [JPG: should say "from above"]
             isterminal=[1;1;1;1]; % stop integration and return
             direction=[1;1;-1;-1]; % "value" should be increasing
         end
@@ -574,7 +575,7 @@ classdef LC_in_square < handle
             end
         end
         
-        function removeError(model, IE)
+        function removeError(model, IE) % [JPG: does this function correct the trajectory when a wall is encountered? is this necessary because the solver would otherwise just barely overstep and put us outside the square?]
             switch IE
                 case 1
                     model.y0(1)=1;
@@ -586,46 +587,35 @@ classdef LC_in_square < handle
                     model.y0(2)=-1;
             end
         end
-        
-        function multiplySaltation(model,TE,YE,flag) % multiply fundMatrix by saltation matrix S
+
+        function multiplySaltation(model,TE,YE,flag) % multiply fundMatrix by saltation matrix S [JPG: the exit flag is never used. is this because we already know the saltation matrix at liftoff is identity? should it be used anyway for validation?]
             na=[1,0]; % na is the normal vector to wall 1 and 3
             nb=[0,1]; % nb is the normal vector to wall 2 and 4
             X=YE(:,1:2)';
             S1=[];
             if ~isempty(TE)
-                dydtdom = model.LC_ODE(TE,X);
-                dydt0 = model.LC_ODE(TE,X,0);
+                dydtdom = model.LC_ODE(TE,X); % vector field of the wall
+                dydt0 = model.LC_ODE(TE,X,0); % vector field of the interior
+                if strcmp(flag,'enter')
+                    F_plus  = dydtdom; % new vector field after entering wall
+                    F_minus = dydt0;   % old vector field before entering wall
+                elseif strcmp(flag,'exit')
+                    F_plus  = dydt0;   % new vector field after exiting wall
+                    F_minus = dydtdom; % old vector field before exiting wall
+                else
+                    error("flag for multiplySaltation must be 'enter' or 'exit'!");
+                end
                 switch model.domain
                     case 1
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*na/(na*dydt0); %saltation matrix when entering wall 1
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*nb/(nb*dydtdom);%saltation matrix when exit wall 1
-                        end
-                        
+                        n = na;
                     case 2
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*nb/(nb*dydt0); %saltation matrix when entering wall 2
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*na/(na*dydtdom);%saltation matrix when exit wall 2
-                        end
+                        n = nb;
                     case 3
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*na/(na*dydt0); %saltation matrix when entering wall 3
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*nb/(nb*dydtdom);%saltation matrix when exit wall 3
-                        end
+                        n = na;
                     case 4
-                        if strcmp(flag,'enter')
-                            S1=eye(2)+(dydtdom-dydt0)*nb/(nb*dydt0); %saltation matrix when entering wall 4
-                        end
-                        if strcmp(flag,'exit')
-                            S1=eye(2)+(dydt0-dydtdom)*na/(na*dydtdom);%saltation matrix when exit wall 4
-                        end
+                        n = nb;
                 end
+                S1=eye(2)+(F_plus-F_minus)*n/(n*F_minus); % saltation matrix, eq. 3.22
                 model.y0(3:4) = [YE(3),YE(4)]*S1';
             end
         end
