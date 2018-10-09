@@ -31,6 +31,23 @@ normdiff    = zeros(size(epsvec));     % relative difference between the actual 
 % see 'SRC_nonuniform_perturbation_piecewise_nu_plot' for how to find it
 vinit = [3.074e-10 -4.7892e-10];
 
+% Compute the unperturbed solution and the iSRC with piecewise nu's
+model = LC_in_square('varOn', true, 'xinit', x_in, 'vinit', vinit, ...
+    'tmax', T0, 'nu', [nu_below,nu_above]);
+model.solve
+
+% Separate the solution into two segments, one in region I and the other in region II
+ind_above_wedge=(model.yext(:,1) + model.yext(:,2) >=0) & (model.yext(:,2) - model.yext(:,1) >=0) & (model.t<6); % index for above wedge; % index for above wedge
+time_above_wedge=model.t(ind_above_wedge);  % time above wedge
+x_above_wedge=model.yext(ind_above_wedge,1:2);
+u_above_wedge=model.yext(ind_above_wedge,3:4);
+
+ind_below_wedge=(model.t >= T0_above); % index for above wedge
+time_below_wedge=[time_above_wedge(end); model.t(ind_below_wedge)];  % time above wedge
+x_below_wedge=[x_above_wedge(end,:); model.yext(ind_below_wedge,1:2)];
+u_below_wedge=[u_above_wedge(end,:); model.yext(ind_below_wedge,3:4)];
+
+
 for i=1:length(epsvec)
     
     eps=epsvec(i);   % perturbation size
@@ -55,24 +72,7 @@ for i=1:length(epsvec)
     T0_below_pert=Teps-T0_above_pert;    
     ind_below_wedge_pert=(model_pert.t >= T0_above_pert); % index for above wedge
     time_below_wedge_pert=[time_above_wedge_pert(end); model_pert.t(ind_below_wedge_pert)];  % time above wedge
-    x_below_wedge_pert=[x_above_wedge_pert(end,:); model_pert.yext(ind_below_wedge_pert,1:2)];
-    
-    % Compute the unperturbed solution and the iSRC with piecewise nu's
-    model = LC_in_square('varOn', true, 'xinit', x_in, 'vinit', vinit, ...
-        'tmax', T0, 'nu', [nu_below,nu_above]);
-    model.solve
-    
-    % Separate the solution into two segments, one in region I and the other in region II
-    ind_above_wedge=(model.yext(:,1) + model.yext(:,2) >=0) & (model.yext(:,2) - model.yext(:,1) >=0) & (model.t<6); % index for above wedge; % index for above wedge
-    time_above_wedge=model.t(ind_above_wedge);  % time above wedge
-    x_above_wedge=model.yext(ind_above_wedge,1:2);
-    u_above_wedge=model.yext(ind_above_wedge,3:4);
-    
-    ind_below_wedge=(model.t >= T0_above); % index for above wedge
-    time_below_wedge=[time_above_wedge(end); model.t(ind_below_wedge)];  % time above wedge
-    x_below_wedge=[x_above_wedge(end,:); model.yext(ind_below_wedge,1:2)];
-    u_below_wedge=[u_above_wedge(end,:); model.yext(ind_below_wedge,3:4)];
-    
+    x_below_wedge_pert=[x_above_wedge_pert(end,:); model_pert.yext(ind_below_wedge_pert,1:2)];    
     
     % rescale the perturbed time to be the same as the unperturbed time in region I and II, respectively
     [tspan_above_wedge, Ind_above_wedge] = unique((time_above_wedge_pert./T0_above_pert).*T0_above,'stable'); % rescale time such that it has time [0 T0_above]

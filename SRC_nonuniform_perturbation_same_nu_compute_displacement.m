@@ -27,6 +27,11 @@ normdiff = zeros(size(epsvec));    % relative difference between the actual norm
 % see 'SRC_nonuniform_perturbation_piecewise_nu_plot' for how to find it
 vinit = [3.074e-10 -4.7892e-10];
 
+% Compute the unperturbed solution and the iSRC with uniform nu
+model = LC_in_square('varOn', true, 'xinit', x_in, 'vinit', vinit, ...
+    'tmax', T0, 'nu', [nu,nu]);
+model.solve
+
 for i=1:length(epsvec)
     
     eps=epsvec(i);   % perturbation size
@@ -42,11 +47,6 @@ for i=1:length(epsvec)
     model_pert = LC_in_square('xinit', x_in_pert, 'vinit',[0 0],...
         'tmax', Teps, 'nu', [0,0], 'eps', eps);
     model_pert.solve;
-    
-    % Compute the unperturbed solution and the iSRC with uniform nu
-    model = LC_in_square('varOn', true, 'xinit', x_in, 'vinit', vinit, ...
-        'tmax', T0, 'nu', [nu,nu]);
-    model.solve
     
     % Rescale the time of the perturbed LC to be the same as model.t, the time for the unperturbed LC
     [tspan1, Ind1] = unique((model_pert.t./Teps).*T0,'stable'); % rescale time such that it has time [0 T0]
