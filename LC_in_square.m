@@ -228,6 +228,12 @@ classdef LC_in_square < handle
             model.t_exit = [];
             model.Jump_exit = {};
             
+            if model.varOn
+                model_ode = @model.LC_ODE_ext;
+            else
+                model_ode = @model.LC_ODE;
+            end
+            
             options0=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.dom0_to_wall);
             options1=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall1_exit);
             options2=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall2_exit);
@@ -242,10 +248,8 @@ classdef LC_in_square < handle
                 switch model.domain
                     case 0 % interior
                         if model.varOn
-                            model_ode = @model.LC_ODE_ext;
                             model_opt = options0;
                         else
-                            model_ode = @model.LC_ODE;
                             model_opt = options0;
                         end
                         [tnew,ynew,TE,YE,IE] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until a wall is encountered
@@ -256,10 +260,8 @@ classdef LC_in_square < handle
                     case 1 % x=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_ode = @model.LC_ODE_ext;
                             model_opt = options1_ext;
                         else
-                            model_ode = @model.LC_ODE;
                             model_opt = options1;
                         end
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
@@ -270,10 +272,8 @@ classdef LC_in_square < handle
                     case 2 % y=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_ode = @model.LC_ODE_ext;
                             model_opt = options2_ext;
                         else
-                            model_ode = @model.LC_ODE;
                             model_opt = options2;
                         end
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
@@ -284,10 +284,8 @@ classdef LC_in_square < handle
                     case 3 % x=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_ode = @model.LC_ODE_ext;
                             model_opt = options3_ext;
                         else
-                            model_ode = @model.LC_ODE;
                             model_opt = options3;
                         end
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
@@ -298,10 +296,8 @@ classdef LC_in_square < handle
                     case 4 % y=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_ode = @model.LC_ODE_ext;
                             model_opt = options4_ext;
                         else
-                            model_ode = @model.LC_ODE;
                             model_opt = options4;
                         end
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
