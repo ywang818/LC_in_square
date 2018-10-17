@@ -490,7 +490,7 @@ classdef LC_in_square < handle
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%% ODE for Variational Problem %%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function dydt=LC_ODE_ext(model,~,y,domain_overload) % flow on the interior
+        function dydt=LC_ODE_ext(model,~,y,domain_overload)
             if nargin > 3
                 ODEdomain = domain_overload;
             else
@@ -526,7 +526,7 @@ classdef LC_in_square < handle
             dydt=[dxdt;dvdt];
         end
         
-        function dzdt=LC_ODE_prc(model,t,z,xmat) % flow on the interior
+        function dzdt=LC_ODE_prc(model,t,z,xmat)
             
             xvec = interp1(model.reverseTspan,xmat,t);
             
