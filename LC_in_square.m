@@ -374,7 +374,7 @@ classdef LC_in_square < handle
             
             while true
                 switch dom
-                    case 0 % interior or on along a wall, except at exit points
+                    case 0 % interior or wall, except at exit points
                         T = model.reverseTspan(model.reverseTspan <= TE);
                         if T == 0
                             break;
