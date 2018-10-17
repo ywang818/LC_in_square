@@ -2,13 +2,14 @@
 % with ICs [-1, 0] and [0, 1] at the liftoff point on the wall x=1
 
 S=[];
-T0=6.766182958128606; % intrinsic period of the oscillator
+alpha=0.2;
+T0=6.766182958128606; % intrinsic period of the oscillator for alpha=0.2
 yinit=[1, alpha]; % liftoff point
 
-modele1 = LC_in_square('varOn', true, 'xinit', yinit,'vinit', [-1 0],'tmax', T0);
+modele1 = LC_in_square('varOn', true, 'xinit', yinit, 'vinit', [-1 0], 'tmax', T0, 'alpha', alpha);
 modele1.solve
 
-modele2 = LC_in_square('varOn', true, 'xinit', yinit,'vinit', [0 1],'tmax', T0);
+modele2 = LC_in_square('varOn', true, 'xinit', yinit, 'vinit', [ 0 1], 'tmax', T0, 'alpha', alpha);
 modele2.solve
 
 %% 
