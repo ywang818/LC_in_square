@@ -442,6 +442,46 @@ classdef LC_in_square < handle
             direction=[1;1;-1;-1]; % "value" should be increasing
         end
         
+        function [value,isterminal,direction]=wall1_exit(model,~,y)
+            % when the *unconstrained* value of dx/dt decreases through zero, return
+            y(1)=1;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(2)-a;
+            isterminal=1;
+            direction=1;
+            
+        end
+        
+        function [value,isterminal,direction]=wall2_exit(model,~,y)
+            % when the *unconstrained* value of dy/dt decreases through zero, return
+            y(2)=1;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(1)+a;
+            isterminal=1;
+            direction=-1;
+            
+        end
+        
+        function [value,isterminal,direction]=wall3_exit(model,~,y)
+            % when the *unconstrained* value of dx/dt increases through zero, return
+            y(1)=-1;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(2)+a;
+            isterminal=1;
+            direction=-1;
+            
+        end
+        
+        function [value,isterminal,direction]=wall4_exit(model,~,y)
+            % when the *unconstrained* value of dy/dt increases through zero, return
+            y(2)=-1;
+            [a, b] = model.alphaFcn(y(1),y(2));
+            value=b*y(1)-a;
+            isterminal=1;
+            direction=1;
+            
+        end
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%% ODE for Variational Problem %%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -499,46 +539,6 @@ classdef LC_in_square < handle
                     DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [a,-b;0,0] ?]
             end
             dzdt=-DF'*[z(1); z(2)]; % adjoint equation, eq. 2.7
-        end
-        
-        function [value,isterminal,direction]=wall1_exit(model,~,y)
-            % when the *unconstrained* value of dx/dt decreases through zero, return
-            y(1)=1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(2)-a;
-            isterminal=1;
-            direction=1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall2_exit(model,~,y)
-            % when the *unconstrained* value of dy/dt decreases through zero, return
-            y(2)=1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(1)+a;
-            isterminal=1;
-            direction=-1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall3_exit(model,~,y)
-            % when the *unconstrained* value of dx/dt increases through zero, return
-            y(1)=-1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(2)+a;
-            isterminal=1;
-            direction=-1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall4_exit(model,~,y)
-            % when the *unconstrained* value of dy/dt increases through zero, return
-            y(2)=-1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(1)-a;
-            isterminal=1;
-            direction=1;
-            
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
