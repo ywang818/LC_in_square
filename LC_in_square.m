@@ -235,10 +235,10 @@ classdef LC_in_square < handle
             end
             
             options0=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.dom0_to_wall);
-            options1_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall1_exit_ext);
-            options2_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall2_exit_ext);
-            options3_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall3_exit_ext);
-            options4_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall4_exit_ext);
+            options1=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall1_exit);
+            options2=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall2_exit);
+            options3=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall3_exit);
+            options4=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall4_exit);
             
             while model.t0 < model.tmax
                 switch model.domain
@@ -252,7 +252,7 @@ classdef LC_in_square < handle
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
                         end
-                        model_opt = options1_ext;
+                        model_opt = options1;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
@@ -262,7 +262,7 @@ classdef LC_in_square < handle
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
                         end
-                        model_opt = options2_ext;
+                        model_opt = options2;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
@@ -272,7 +272,7 @@ classdef LC_in_square < handle
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
                         end
-                        model_opt = options3_ext;
+                        model_opt = options3;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
@@ -282,7 +282,7 @@ classdef LC_in_square < handle
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
                         end
-                        model_opt = options4_ext;
+                        model_opt = options4;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
@@ -501,7 +501,7 @@ classdef LC_in_square < handle
             dzdt=-DF'*[z(1); z(2)]; % adjoint equation, eq. 2.7
         end
         
-        function [value,isterminal,direction]=wall1_exit_ext(model,~,y)
+        function [value,isterminal,direction]=wall1_exit(model,~,y)
             % when the *unconstrained* value of dx/dt decreases through zero, return
             y(1)=1;
             [a, b] = model.alphaFcn(y(1),y(2));
@@ -511,7 +511,7 @@ classdef LC_in_square < handle
             
         end
         
-        function [value,isterminal,direction]=wall2_exit_ext(model,~,y)
+        function [value,isterminal,direction]=wall2_exit(model,~,y)
             % when the *unconstrained* value of dy/dt decreases through zero, return
             y(2)=1;
             [a, b] = model.alphaFcn(y(1),y(2));
@@ -521,7 +521,7 @@ classdef LC_in_square < handle
             
         end
         
-        function [value,isterminal,direction]=wall3_exit_ext(model,~,y)
+        function [value,isterminal,direction]=wall3_exit(model,~,y)
             % when the *unconstrained* value of dx/dt increases through zero, return
             y(1)=-1;
             [a, b] = model.alphaFcn(y(1),y(2));
@@ -531,7 +531,7 @@ classdef LC_in_square < handle
             
         end
         
-        function [value,isterminal,direction]=wall4_exit_ext(model,~,y)
+        function [value,isterminal,direction]=wall4_exit(model,~,y)
             % when the *unconstrained* value of dy/dt increases through zero, return
             y(2)=-1;
             [a, b] = model.alphaFcn(y(1),y(2));
