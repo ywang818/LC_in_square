@@ -434,52 +434,48 @@ classdef LC_in_square < handle
         
         function [value,isterminal,direction]=dom0_to_wall(~,~,y)
             value=[...
-                y(1)-1;...  % when x crosses 1 from below (wall 1)
-                y(2)-1;...  % when y crosses 1 from below (wall 2)
+                y(1)-1;...  % when x crosses  1 from below (wall 1)
+                y(2)-1;...  % when y crosses  1 from below (wall 2)
                 y(1)+1;...  % when x crosses -1 from above (wall 3)
-                y(2)+1];    % when y crosses -1 from below (wall 4)
-            isterminal=[1;1;1;1]; % stop integration and return
-            direction=[1;1;-1;-1]; % "value" should be increasing
+                y(2)+1];    % when y crosses -1 from above (wall 4)
+            isterminal=[1;1;1;1];  % stop integration and return
+            direction=[1;1;-1;-1]; % "value" should be increasing (1) or decreasing (-1)
         end
         
-        function [value,isterminal,direction]=wall1_exit(model,~,y)
+        function [value,isterminal,direction]=wall1_exit(model,~,y) % x=1
             % when the *unconstrained* value of dx/dt decreases through zero, return
             y(1)=1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(2)-a;
-            isterminal=1;
-            direction=1;
-            
+            value=a*y(1)-b*y(2); % dx/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=-1; % "value" should be decreasing
         end
         
-        function [value,isterminal,direction]=wall2_exit(model,~,y)
+        function [value,isterminal,direction]=wall2_exit(model,~,y) % y=1
             % when the *unconstrained* value of dy/dt decreases through zero, return
             y(2)=1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(1)+a;
-            isterminal=1;
-            direction=-1;
-            
+            value=b*y(1)+a*y(2); % dy/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=-1; % "value" should be decreasing
         end
         
-        function [value,isterminal,direction]=wall3_exit(model,~,y)
+        function [value,isterminal,direction]=wall3_exit(model,~,y) % x=-1
             % when the *unconstrained* value of dx/dt increases through zero, return
             y(1)=-1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(2)+a;
-            isterminal=1;
-            direction=-1;
-            
+            value=a*y(1)-b*y(2); % dx/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=1;  % "value" should be increasing
         end
         
-        function [value,isterminal,direction]=wall4_exit(model,~,y)
+        function [value,isterminal,direction]=wall4_exit(model,~,y) % y=-1
             % when the *unconstrained* value of dy/dt increases through zero, return
             y(2)=-1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(1)-a;
-            isterminal=1;
-            direction=1;
-            
+            value=b*y(1)+a*y(2); % dy/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=1;  % "value" should be increasing
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
