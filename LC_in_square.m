@@ -367,7 +367,7 @@ classdef LC_in_square < handle
             model.prct = [];
             model.prc = [];
             options_prc=odeset('BDF','on','RelTol',model.reltol,...
-                'AbsTol',model.abstol,'Events',@model.exit_wall);
+                'AbsTol',model.abstol,'Events',@model.exit_wall); % integration will stop when a wall is entered backwards in time
             
             [model.reverseTspan, Ind] = unique(wrev(model.t),'stable');
             if isempty(model.reverseTspan)
@@ -381,15 +381,18 @@ classdef LC_in_square < handle
             
             while true
                 switch dom
-                    case 0
+                    case 0 % interior or on along a wall, except at exit points
                         T = model.reverseTspan(model.reverseTspan <= TE);
                         if T == 0
                             break;
                         end
+                        
+                        % integrate backwards in time until a wall exit point is encountered
                         [tnew,znew,TE,YE,IE]=ode15s(@model.LC_ODE_prc,T,z0,options_prc,xmat);
                         model.prct = [model.prct; tnew];
                         model.prc = [model.prc; znew];
                         dom=1;
+                        
                         if ~isempty(IE)
                             IE = IE(end);
                             TE = TE(end);
@@ -397,7 +400,10 @@ classdef LC_in_square < handle
                         if counter >= numel(model.t_exit)
                             break;
                         end
-                    case 1
+                        
+                    case 1 % at wall exit points
+                        
+                        % apply the jump matrix, eq. 3.25
                         J=model.Jump_exit{IE};
                         z0 = znew(end,1:2)*J';
                         counter = counter + 1;
