@@ -249,7 +249,7 @@ classdef LC_in_square < handle
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,IE);
                         
-                        model.domain = IE;
+                        model.domain = IE; % new domain is the encountered wall
                     case 1 % x=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
@@ -260,8 +260,8 @@ classdef LC_in_square < handle
                         
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
                     case 2 % y=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
@@ -271,8 +271,8 @@ classdef LC_in_square < handle
                         end
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
                     case 3 % x=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
@@ -282,8 +282,8 @@ classdef LC_in_square < handle
                         end
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
                     case 4 % y=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
@@ -293,8 +293,8 @@ classdef LC_in_square < handle
                         end
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
                 end
             end
         end
