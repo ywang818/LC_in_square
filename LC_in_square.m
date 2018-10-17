@@ -655,7 +655,7 @@ classdef LC_in_square < handle
                     case 4
                         n = nb;
                 end
-                S1=eye(2)+(F_plus-F_minus)*n/(n*F_minus); % saltation matrix, eq. 3.22
+                S1=eye(2)+(F_plus-F_minus)*n/(n*F_minus); % saltation matrix, eq. 3.24
                 model.y0(3:4) = [YE(3),YE(4)]*S1';
             end
             
