@@ -507,7 +507,7 @@ classdef LC_in_square < handle
             [a, b] = model.alphaFcn(x(1),x(2));
             dxdt=[a,-b;b,a]*x;
             switch ODEdomain
-                case 0
+                case 0 % interior
                     dvdt=[a,-b;b,a]*v;
                 case 1 % x=1 wall
                     dxdt(1)=min(dxdt(1),0); % only allow negative dx/dt or else zero
@@ -537,22 +537,19 @@ classdef LC_in_square < handle
             xvec = interp1(model.reverseTspan,xmat,t);
             
             [a, b] = model.alphaFcn(xvec(1),xvec(2));
-            DF=[a,-b;b,a];
             switch model.checkdomain(xvec)
+                case 0 % interior
+                    DF=[a,-b;b,a]; % Jacobian for interior, from eq. 5.46
                 case 1 % x=1 wall
-                    %dxdt(1)=min(dxdt(1),0); % only allow negative dx/dt or else zero
-                    DF=[0,0;0,a];
+                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                 case 2 % y=1 wall
-                    %dxdt(2)=min(dxdt(2),0); % only allow negative dy/dt or else zero
-                    DF=[a,0;0,0];
+                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [a,-b;0,0] ?]
                 case 3 % x=-1 wall
-                    %dxdt(1)=max(dxdt(1),0); % only allow positive dx/dt or else zero
-                    DF=[0,0;0,a];
+                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                 case 4 % y=-1 wall
-                    %dxdt(2)=max(dxdt(2),0); % only allow positive dy/dt or else zero
-                    DF=[a,0;0,0];
+                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [a,-b;0,0] ?]
             end
-            dzdt=-DF'*[z(1); z(2)];
+            dzdt=-DF'*[z(1); z(2)]; % adjoint equation, eq. 2.7
         end
         
         function [value,isterminal,direction]=wall1_exit_ext(model,~,y)
