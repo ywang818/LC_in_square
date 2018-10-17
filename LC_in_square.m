@@ -235,15 +235,11 @@ classdef LC_in_square < handle
             end
             
             options0=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.dom0_to_wall);
-            options1=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall1_exit);
-            options2=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall2_exit);
-            options3=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall3_exit);
-            options4=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall4_exit);
-            
             options1_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall1_exit_ext);
             options2_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall2_exit_ext);
             options3_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall3_exit_ext);
             options4_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall4_exit_ext);
+            
             while model.t0 < model.tmax
                 switch model.domain
                     case 0 % interior
@@ -444,50 +440,6 @@ classdef LC_in_square < handle
                 y(2)+1];    % when y crosses -1 from below (wall 4)
             isterminal=[1;1;1;1]; % stop integration and return
             direction=[1;1;-1;-1]; % "value" should be increasing
-        end
-        
-        function [value,isterminal,direction]=wall1_exit(model,~,y)
-            % when the *unconstrained* value of dx/dt decreases through zero, return
-            y(1)=1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(1);
-            isterminal=1;
-            direction=-1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall2_exit(model,~,y)
-            % when the *unconstrained* value of dy/dt decreases through zero, return
-            y(2)=1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(2);
-            isterminal=1;
-            direction=-1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall3_exit(model,~,y)
-            % when the *unconstrained* value of dx/dt increases through zero, return
-            y(1)=-1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(1);
-            isterminal=1;
-            direction=1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall4_exit(model,~,y)
-            % when the *unconstrained* value of dy/dt increases through zero, return
-            y(2)=-1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(2);
-            isterminal=1;
-            direction=1;
-            
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
