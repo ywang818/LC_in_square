@@ -247,23 +247,16 @@ classdef LC_in_square < handle
             while model.t0 < model.tmax
                 switch model.domain
                     case 0 % interior
-                        if model.varOn
-                            model_opt = options0;
-                        else
-                            model_opt = options0;
-                        end
+                        model_opt = options0;
                         [tnew,ynew,TE,YE,IE] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until a wall is encountered
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,IE);
-                        
                         model.domain = IE; % new domain is the encountered wall
                     case 1 % x=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_opt = options1_ext;
-                        else
-                            model_opt = options1;
                         end
+                        model_opt = options1_ext;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
@@ -272,10 +265,8 @@ classdef LC_in_square < handle
                     case 2 % y=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_opt = options2_ext;
-                        else
-                            model_opt = options2;
                         end
+                        model_opt = options2_ext;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
@@ -284,10 +275,8 @@ classdef LC_in_square < handle
                     case 3 % x=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_opt = options3_ext;
-                        else
-                            model_opt = options3;
                         end
+                        model_opt = options3_ext;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
@@ -296,10 +285,8 @@ classdef LC_in_square < handle
                     case 4 % y=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            model_opt = options4_ext;
-                        else
-                            model_opt = options4;
                         end
+                        model_opt = options4_ext;
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
