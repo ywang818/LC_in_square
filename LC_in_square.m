@@ -242,10 +242,13 @@ classdef LC_in_square < handle
                 switch model.domain
                     case 0 % interior
                         if model.varOn
-                            [tnew,ynew,TE,YE,IE] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options0);
+                            model_ode = @model.LC_ODE_ext;
+                            model_opt = options0;
                         else
-                            [tnew,ynew,TE,YE,IE] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options0);
+                            model_ode = @model.LC_ODE;
+                            model_opt = options0;
                         end
+                        [tnew,ynew,TE,YE,IE] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until a wall is encountered
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,IE);
                         
@@ -253,11 +256,13 @@ classdef LC_in_square < handle
                     case 1 % x=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options1_ext);
+                            model_ode = @model.LC_ODE_ext;
+                            model_opt = options1_ext;
                         else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options1);
+                            model_ode = @model.LC_ODE;
+                            model_opt = options1;
                         end
-                        
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
                         model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
@@ -265,10 +270,13 @@ classdef LC_in_square < handle
                     case 2 % y=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options2_ext);
+                            model_ode = @model.LC_ODE_ext;
+                            model_opt = options2_ext;
                         else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options2);
+                            model_ode = @model.LC_ODE;
+                            model_opt = options2;
                         end
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
                         model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
@@ -276,10 +284,13 @@ classdef LC_in_square < handle
                     case 3 % x=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options3_ext);
+                            model_ode = @model.LC_ODE_ext;
+                            model_opt = options3_ext;
                         else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options3);
+                            model_ode = @model.LC_ODE;
+                            model_opt = options3;
                         end
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
                         model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
@@ -287,10 +298,13 @@ classdef LC_in_square < handle
                     case 4 % y=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options4_ext);
+                            model_ode = @model.LC_ODE_ext;
+                            model_opt = options4_ext;
                         else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options4);
+                            model_ode = @model.LC_ODE;
+                            model_opt = options4;
                         end
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
                         model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
