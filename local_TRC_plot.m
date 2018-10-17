@@ -16,7 +16,7 @@ T0=6.766182958128617;
 
 x_in=[0.811047481339979   0.811181234361245];  % the entry point into region 1
 x_out=[-0.813550109151894   0.809463778128291]; % the exit point from region 1
-model = LC_in_square('xinit', x_out);  % Compute the solution trajectory from x_exit
+model = LC_in_square('xinit', x_out);  % Compute the solution trajectory from x_out
 model.solve;
 
 % Compute the total time spent in the region I, that is above the wedge
@@ -37,7 +37,7 @@ model.solve;
 % This will be the initial condition for the lTRC since we will integrate the adjoint equation backward in time
 lTRCinit0=[1,1]'; % the normal vector to the exit boundary of the wedge (y=-x)
 dummy=0;
-f10=model.LC_ODE(dummy,x_exit',model.checkdomain(x_exit)); % vector field at the exit point
+f10=model.LC_ODE(dummy,x_out',model.checkdomain(x_out)); % vector field at the exit point
 rescale=f10'*lTRCinit0;
 lTRCinit=-lTRCinit0'/(rescale); % the value for the lTRC at the exit point 
 
