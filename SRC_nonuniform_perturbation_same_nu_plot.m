@@ -75,6 +75,7 @@ xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$x_{\varepsilon}(t)-x(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles
 
 title('Uniform rescaling','Interpreter','latex','FontWeight','normal','Fontsize',20)
 
@@ -90,4 +91,5 @@ xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$y_{\varepsilon}(t)-y(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles
 

@@ -307,6 +307,7 @@ classdef LC_in_square < handle
             xlim([0 model.tmax])
             set(gca,'FontSize',18)
             xlabel('Time','interpreter','latex','fontsize',25)
+            model.draw_wall_contact_rectangles
             
             subplot(2,1,2)
             plot(model.prct,model.prc(:,1:2),'linewidth',2)
@@ -320,6 +321,7 @@ classdef LC_in_square < handle
             set(gca,'FontSize',18)
             xlabel('Time','interpreter','latex','fontsize',25)
             ylabel('iPRC','interpreter','latex','fontsize',25)
+            model.draw_wall_contact_rectangles
         end
         
         function plot(model)
@@ -336,7 +338,31 @@ classdef LC_in_square < handle
                 ylabel('v1,v2')
                 legend('v1','v2')
                 grid on
+                model.draw_wall_contact_rectangles
             end
+        end
+        
+        function draw_wall_contact_rectangles(model, yrange)
+            if ~exist('yrange', 'var')
+                yrange = ylim;              % by default use current ylim
+            end
+            onwall = ...                    % logical array for when any of these are true:
+                     model.yext(:,1) ==  1 | ... % x=1
+                     model.yext(:,2) ==  1 | ... % y=1
+                     model.yext(:,1) == -1 | ... % x=-1
+                     model.yext(:,2) == -1;      % y=-1
+            values = zeros(size(onwall));   % rectangle height as a function of time
+            values(~onwall) = yrange(1);    % set low value
+            values( onwall) = yrange(2);    % set high value
+            hold on;                        % don't remove existing plot elements
+            h = area(model.t, values, ...   % draw rectangles
+                yrange(1), ...              % fill from bottom of plot instead of from 0
+                'FaceColor', 'k', ...       % black
+                'FaceAlpha', 0.1, ...       % transparent
+                'LineStyle', 'none', ...    % no border
+                'ShowBaseLine', 'off', ...  % no baseline
+                'HandleVisibility', 'off'); % prevent this object from being added to legends
+            uistack(h, 'bottom');           % put the rectangles behind all other plot elements
         end
         
         function T = findPeriod(model)

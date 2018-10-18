@@ -74,3 +74,4 @@ plot([T0_above_wedge T0_above_wedge], [-2 2],'b-.','linewidth',2)
 plot([0 0], [-2 2],'g-.','linewidth',2)
 text(0.03,-1.5,'$t_A$','Interpreter','latex','FontSize',30,'Color','g')
 text(1.55,-1.5,'$t_B$','Interpreter','latex','FontSize',30,'Color','b')
+model.draw_wall_contact_rectangles
