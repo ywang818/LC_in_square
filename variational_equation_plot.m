@@ -35,6 +35,7 @@ legend('original','perturbed')
 set(gca,'FontSize',18)
 text(-2,0.9, '$\textbf{(A)}$','Interpreter','latex','FontSize',28,'Color','k')
 ylabel('$x$','interpreter','latex','fontsize',30,'rot',0)
+modele2.draw_wall_contact_rectangles
 
 subplot(2,2,2)
 plot(modele2.t,displacement(:,1),'k', 'linewidth',2)
@@ -47,6 +48,7 @@ legend('actual','approximation')
 set(gca,'FontSize',18)
 ylabel('$\textbf{u}_x$','interpreter','latex','fontsize',25,'rot',0)
 text(-2,0.13, '$\textbf{(B)}$','Interpreter','latex','FontSize',28,'Color','k')
+modele2.draw_wall_contact_rectangles
 
 subplot(2,2,3)
 plot(modele2.t, modele2.yext(:,2),'k', 'linewidth',2)
@@ -59,6 +61,7 @@ legend('original','perturbed')
 set(gca,'FontSize',18)
 text(-2,0.9, '$\textbf{(C)}$','Interpreter','latex','FontSize',28,'Color','k')
 ylabel('$y$','interpreter','latex','fontsize',30,'rot',0)
+modele2.draw_wall_contact_rectangles
 
 subplot(2,2,4)
 plot(modele2.t,displacement(:,2), 'k', 'linewidth',2)
@@ -70,5 +73,6 @@ xlabel('$\rm time (ms)$','interpreter','latex','fontsize',25)
 legend('actual','approximation')
 set(gca,'FontSize',18)
 ylabel('$\textbf{u}_y$','interpreter','latex','fontsize',25,'rot',0)
+modele2.draw_wall_contact_rectangles
 
 text(-2,0.13, '$\textbf{(D)}$','Interpreter','latex','FontSize',28,'Color','k')

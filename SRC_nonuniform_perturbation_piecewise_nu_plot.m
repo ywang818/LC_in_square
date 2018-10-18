@@ -110,6 +110,7 @@ xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$x_{\varepsilon}(t)-x(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles
 title('Piecewise uniform rescaling','Interpreter','latex','FontWeight','normal','Fontsize',20)
 
 subplot(2,1,2)
@@ -124,3 +125,4 @@ xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$y_{\varepsilon}(t)-y(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles

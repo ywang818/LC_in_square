@@ -52,6 +52,7 @@ xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$x_{\varepsilon}(t)-x(t)$ ','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles
 
 subplot(2,1,2)
 plot(model.t,displacement(:,2),'k','linewidth',3)
@@ -62,6 +63,7 @@ xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$y_{\varepsilon}(t)-y(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles
 
 
 % figure
