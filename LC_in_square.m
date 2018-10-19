@@ -418,7 +418,7 @@ classdef LC_in_square < handle
             end
             
             [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
+            dydt=[a,-b;b,a]*y; % Jacobian for interior, from eq. 5.44
             
             switch ODEdomain
                 case 1
@@ -490,25 +490,25 @@ classdef LC_in_square < handle
             x=y(1:2);
             v=y(3:4);
             [a, b] = model.alphaFcn(x(1),x(2));
-            dxdt=[a,-b;b,a]*x;
+            dxdt=[a,-b;b,a]*x; % Jacobian for interior, from eq. 5.44
             switch ODEdomain
                 case 0 % interior
-                    dvdt=[a,-b;b,a]*v;
+                    dvdt=[a,-b;b,a]*v; % Jacobian for interior, from eq. 5.44
                 case 1 % x=1 wall
                     dxdt(1)=min(dxdt(1),0); % only allow negative dx/dt or else zero
-                    dvdt=[0,0;0,a]*v;
+                    dvdt=[0,0;0,a]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                     % dvdt(2)=dvdt(2)+y(2);
                 case 2 % y=1 wall
                     dxdt(2)=min(dxdt(2),0); % only allow negative dy/dt or else zero
-                    dvdt=[a,0;0,0]*v;
+                    dvdt=[a,0;0,0]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
                     % dvdt(1)=dvdt(1)+y(1);
                 case 3 % x=-1 wall
                     dxdt(1)=max(dxdt(1),0); % only allow positive dx/dt or else zero
-                    dvdt=[0,0;0,a]*v;
+                    dvdt=[0,0;0,a]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                     % dvdt(2)=dvdt(2)+y(2);
                 case 4 % y=-1 wall
                     dxdt(2)=max(dxdt(2),0); % only allow positive dy/dt or else zero
-                    dvdt=[a,0;0,0]*v;
+                    dvdt=[a,0;0,0]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
                     % dvdt(1)=dvdt(1)+y(1);
             end
             % add nonhomogeneous terms to variational problem for sustained perturbation
@@ -524,15 +524,15 @@ classdef LC_in_square < handle
             [a, b] = model.alphaFcn(xvec(1),xvec(2));
             switch model.checkdomain(xvec)
                 case 0 % interior
-                    DF=[a,-b;b,a]; % Jacobian for interior, from eq. 5.46
+                    DF=[a,-b;b,a]; % Jacobian for interior, from eq. 5.44
                 case 1 % x=1 wall
-                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [0,0;b,a]  ?]
+                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                 case 2 % y=1 wall
-                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [a,-b;0,0] ?]
+                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
                 case 3 % x=-1 wall
-                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [0,0;b,a]  ?]
+                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                 case 4 % y=-1 wall
-                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.46 and 4.34  [JPG: should it be [a,-b;0,0] ?]
+                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
             end
             dzdt=-DF'*[z(1); z(2)]; % adjoint equation, eq. 2.7
         end
