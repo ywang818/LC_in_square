@@ -43,14 +43,16 @@ displacement=x_pert_interp - model.yext(:,1:2);
 %% Plot the actual displacement and the approximated displacement (eps*iSRC) together
 
 figure
+set(gcf,'Position',[0 0 860 650])
 subplot(2,1,1)
 plot(model.t,displacement(:,1),'k','linewidth',3)
 hold on
 plot(model.t,eps*model.yext(:,3),'r:','linewidth',2)
 xlim([0 T0])
+ylim([-0.025 0.025])
 xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$x_{\varepsilon}(t)-x(t)$ ','interpreter','latex','fontsize',25)
-legend({'actual','approximation'},'Interpreter','latex')
+legend({'actual','approximation'},'Interpreter','latex','Location','northwest')
 set(gca,'FontSize',18)
 model.draw_wall_contact_rectangles
 
@@ -59,9 +61,10 @@ plot(model.t,displacement(:,2),'k','linewidth',3)
 hold on
 plot(model.t,eps*model.yext(:,4),'r:','linewidth',2)
 xlim([0 T0])
+ylim([-0.025 0.025])
 xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
 ylabel('$y_{\varepsilon}(t)-y(t)$','interpreter','latex','fontsize',25)
-legend({'actual','approximation'},'Interpreter','latex')
+legend({'actual','approximation'},'Interpreter','latex','Location','southwest')
 set(gca,'FontSize',18)
 model.draw_wall_contact_rectangles
 

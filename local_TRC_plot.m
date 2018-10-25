@@ -61,12 +61,13 @@ disp(nu_above_wedge)
 
 %%
 figure
+set(gcf,'Position',[0 0 720 520])
 plot(model.prct,model.prc(:,1:2),'linewidth',2)
-legend('Z_x','Z_y')
 xlim([0 model.tmax])
 xlabel('$\rm time (ms)$','interpreter','latex','fontsize',30)
-legend('x-direction','y-direction')
-title('Local timing response curve')
+ylabel('$\eta$','interpreter','latex','fontsize',30,'rot',0)
+legend('x-direction','y-direction','AutoUpdate','off')
+title('$\rm lTRC\ in\ region\ I$','interpreter','latex','fontsize',30)
 % grid on
 set(gca,'FontSize',18)
 hold on

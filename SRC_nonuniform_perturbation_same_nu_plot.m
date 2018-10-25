@@ -63,6 +63,7 @@ displacement=x_pert_interp - model.yext(:,1:2);
  
 %% plot actual displacement obtained from numerical computation vs approximated disp using iSRC
 figure
+set(gcf,'Position',[0 0 720 520])
 subplot(2,1,1)
 plot(model.t,displacement(:,1),'k','linewidth',3)
 hold on

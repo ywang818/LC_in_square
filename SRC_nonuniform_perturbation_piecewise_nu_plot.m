@@ -98,6 +98,7 @@ displacement=[x_pert_interp_above_wedge; x_pert_interp_below_wedge ]- [x_above_w
 
 %% plot actual displacement obtained from numerical computation vs approximated disp using iSRC
 figure
+set(gcf,'Position',[0 0 720 520])
 subplot(2,1,1)
 plot([time_above_wedge; time_below_wedge],displacement(:,1),'k','linewidth',3)
 hold on

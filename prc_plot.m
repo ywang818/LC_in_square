@@ -25,7 +25,7 @@ rescale=f10'*zinit;   % compute the scaling factor
 
 % compute the initial value z0 for iPRC
 z0=zinit/(rescale);   
-disp('The initial condtion for iPRC is')
+disp('The initial condition for iPRC is')
 disp(z0);
 
 % Solve the adjoint equation with the initial condition z0 for the complete iPRC over [0 T0]
