@@ -119,8 +119,8 @@ classdef LC_in_square < handle
     %        6.7662
         
     properties(Constant)
-        reltol = 1e-13; % ode15s tolerance
-        abstol = 1e-13; % ode15s tolerance
+        reltol = 1e-12; % ode15s tolerance
+        abstol = 1e-12; % ode15s tolerance
     end
     
     properties(SetAccess = protected)
