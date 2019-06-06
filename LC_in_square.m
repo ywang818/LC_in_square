@@ -123,7 +123,7 @@ classdef LC_in_square < handle
         abstol = 1e-12; % ode15s tolerance
     end
     
-    properties(SetAccess = protected)
+    properties(SetAccess = protected)  
         xinit
         vinit
         yinit
@@ -133,6 +133,7 @@ classdef LC_in_square < handle
         nu_below
         nu_above
         varOn
+        isochronOn
         tmax
         alpha
         omega
@@ -179,6 +180,8 @@ classdef LC_in_square < handle
                 {'numeric'},{'nonempty'}));
             addOptional(p, 'eps', 0, @(x)validateattributes(x,...
                 {'numeric'},{'nonempty'}));
+            addOptional(p, 'isochronOn', false, @(x)validateattributes(x,...
+                {'logical'},{'nonempty'}));
             
             parse(p, varargin{:})
             
@@ -205,6 +208,7 @@ classdef LC_in_square < handle
             model.varOn = p.Results.varOn;            
             model.xinit = reshape(model.xinit,1,length(model.xinit));
             model.vinit = reshape(model.vinit,1,length(model.vinit));
+            model.isochronOn = p.Results.isochronOn;
             
             model.domain = 0;
             if model.varOn
@@ -262,6 +266,11 @@ classdef LC_in_square < handle
                         model.updateCurrent(tnew,ynew,TE,YE,0);
                         model.storeJump(TE);
                         model.domain=0;
+                        
+                        if model.isochronOn
+                            return;   % For the purpose of computing isochron, stop the code when the trajectory hits the wall x=1
+                        end
+                            
                     case 2 % y=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
@@ -308,7 +317,7 @@ classdef LC_in_square < handle
             xlim([0 model.tmax])
             ylim([-1.1 1.1])
             set(gca,'FontSize',18)
-            xlabel('$\rm time (ms)$','interpreter','latex','fontsize',25)
+            xlabel('$\rm time$','interpreter','latex','fontsize',25)
             model.draw_wall_contact_rectangles
             grid on
             
@@ -322,7 +331,7 @@ classdef LC_in_square < handle
             grid on
             
             set(gca,'FontSize',18)
-            xlabel('$\rm time (ms)$','interpreter','latex','fontsize',25)
+            xlabel('$\rm time$','interpreter','latex','fontsize',25)
             ylabel('$Z$','interpreter','latex','fontsize',25,'rot',0)
             model.draw_wall_contact_rectangles
         end
