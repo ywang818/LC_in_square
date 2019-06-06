@@ -232,41 +232,38 @@ classdef LC_in_square < handle
             model.t_exit = [];
             model.Jump_exit = {};
             
+            if model.varOn
+                model_ode = @model.LC_ODE_ext;
+            else
+                model_ode = @model.LC_ODE;
+            end
+            
             options0=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.dom0_to_wall);
             options1=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall1_exit);
             options2=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall2_exit);
             options3=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall3_exit);
             options4=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall4_exit);
             
-            options1_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall1_exit_ext);
-            options2_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall2_exit_ext);
-            options3_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall3_exit_ext);
-            options4_ext=odeset('BDF','on','RelTol',model.reltol,'AbsTol',model.abstol,'Events',@model.wall4_exit_ext);
             while model.t0 < model.tmax
                 switch model.domain
                     case 0 % interior
-                        if model.varOn
-                            [tnew,ynew,TE,YE,IE] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options0);
-                        else
-                            [tnew,ynew,TE,YE,IE] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options0);
-                        end
+                        model_opt = options0;
+                        [tnew,ynew,TE,YE,IE] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until a wall is encountered
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,IE);
-                        
-                        model.domain = IE;
+                        model.domain = IE; % new domain is the encountered wall
                     case 1 % x=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options1_ext);
-                        else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options1);
                         end
-                        
+                        model_opt = options1;
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
-                        
+
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
+
                         if model.isochronOn
                             return;   % For the purpose of computing isochron, stop the code when the trajectory hits the wall x=1
                         end
@@ -274,36 +271,33 @@ classdef LC_in_square < handle
                     case 2 % y=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options2_ext);
-                        else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options2);
                         end
+                        model_opt = options2;
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
                     case 3 % x=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options3_ext);
-                        else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options3);
                         end
+                        model_opt = options3;
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
                     case 4 % y=-1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE_ext,[model.t0,model.tmax],model.y0,options4_ext);
-                        else
-                            [tnew,ynew,TE,YE,~] = ode45(@model.LC_ODE,[model.t0,model.tmax],model.y0,options4);
                         end
+                        model_opt = options4;
+                        [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
-                        model.storeJump(TE);
-                        model.domain=0;
+                        model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
+                        model.domain=0; % new domain is the interior
                 end
             end
         end
@@ -405,7 +399,7 @@ classdef LC_in_square < handle
             model.prct = [];
             model.prc = [];
             options_prc=odeset('BDF','on','RelTol',model.reltol,...
-                'AbsTol',model.abstol,'Events',@model.exit_wall);
+                'AbsTol',model.abstol,'Events',@model.exit_wall); % integration will stop when a wall is entered backwards in time
             
             [model.reverseTspan, Ind] = unique(wrev(model.t),'stable');
             if isempty(model.reverseTspan)
@@ -419,15 +413,18 @@ classdef LC_in_square < handle
             
             while true
                 switch dom
-                    case 0
+                    case 0 % interior or wall, except at exit points
                         T = model.reverseTspan(model.reverseTspan <= TE);
                         if T == 0
                             break;
                         end
+                        
+                        % integrate backwards in time until a wall exit point is encountered
                         [tnew,znew,TE,YE,IE]=ode15s(@model.LC_ODE_prc,T,z0,options_prc,xmat);
                         model.prct = [model.prct; tnew];
                         model.prc = [model.prc; znew];
                         dom=1;
+                        
                         if ~isempty(IE)
                             IE = IE(end);
                             TE = TE(end);
@@ -435,7 +432,10 @@ classdef LC_in_square < handle
                         if counter >= numel(model.t_exit)
                             break;
                         end
-                    case 1
+                        
+                    case 1 % at wall exit points
+                        
+                        % apply the jump matrix, eq. 3.25
                         J=model.Jump_exit{IE};
                         z0 = znew(end,1:2)*J';
                         counter = counter + 1;
@@ -457,7 +457,7 @@ classdef LC_in_square < handle
             end
             
             [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
+            dydt=[a,-b;b,a]*y; % Jacobian for interior, from eq. 5.44
             
             switch ODEdomain
                 case 1
@@ -473,62 +473,54 @@ classdef LC_in_square < handle
         
         function [value,isterminal,direction]=dom0_to_wall(~,~,y)
             value=[...
-                y(1)-1;...  % when x crosses 1 from below (wall 1)
-                y(2)-1;...  % when y crosses 1 from below (wall 2)
+                y(1)-1;...  % when x crosses  1 from below (wall 1)
+                y(2)-1;...  % when y crosses  1 from below (wall 2)
                 y(1)+1;...  % when x crosses -1 from above (wall 3)
-                y(2)+1];    % when y crosses -1 from below (wall 4)
-            isterminal=[1;1;1;1]; % stop integration and return
-            direction=[1;1;-1;-1]; % "value" should be increasing
+                y(2)+1];    % when y crosses -1 from above (wall 4)
+            isterminal=[1;1;1;1];  % stop integration and return
+            direction=[1;1;-1;-1]; % "value" should be increasing (1) or decreasing (-1)
         end
         
-        function [value,isterminal,direction]=wall1_exit(model,~,y)
+        function [value,isterminal,direction]=wall1_exit(model,~,y) % x=1
             % when the *unconstrained* value of dx/dt decreases through zero, return
             y(1)=1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(1);
-            isterminal=1;
-            direction=-1;
-            
+            value=a*y(1)-b*y(2); % dx/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=-1; % "value" should be decreasing
         end
         
-        function [value,isterminal,direction]=wall2_exit(model,~,y)
+        function [value,isterminal,direction]=wall2_exit(model,~,y) % y=1
             % when the *unconstrained* value of dy/dt decreases through zero, return
             y(2)=1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(2);
-            isterminal=1;
-            direction=-1;
-            
+            value=b*y(1)+a*y(2); % dy/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=-1; % "value" should be decreasing
         end
         
-        function [value,isterminal,direction]=wall3_exit(model,~,y)
+        function [value,isterminal,direction]=wall3_exit(model,~,y) % x=-1
             % when the *unconstrained* value of dx/dt increases through zero, return
             y(1)=-1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(1);
-            isterminal=1;
-            direction=1;
-            
+            value=a*y(1)-b*y(2); % dx/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=1;  % "value" should be increasing
         end
         
-        function [value,isterminal,direction]=wall4_exit(model,~,y)
+        function [value,isterminal,direction]=wall4_exit(model,~,y) % y=-1
             % when the *unconstrained* value of dy/dt increases through zero, return
             y(2)=-1;
             [a, b] = model.alphaFcn(y(1),y(2));
-            dydt=[a,-b;b,a]*y;
-            value=dydt(2);
-            isterminal=1;
-            direction=1;
-            
+            value=b*y(1)+a*y(2); % dy/dt, eq. 5.44
+            isterminal=1; % stop integration and return
+            direction=1;  % "value" should be increasing
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%% ODE for Variational Problem %%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function dydt=LC_ODE_ext(model,~,y,domain_overload) % flow on the interior
+        function dydt=LC_ODE_ext(model,~,y,domain_overload)
             if nargin > 3
                 ODEdomain = domain_overload;
             else
@@ -537,25 +529,25 @@ classdef LC_in_square < handle
             x=y(1:2);
             v=y(3:4);
             [a, b] = model.alphaFcn(x(1),x(2));
-            dxdt=[a,-b;b,a]*x;
+            dxdt=[a,-b;b,a]*x; % Jacobian for interior, from eq. 5.44
             switch ODEdomain
-                case 0
-                    dvdt=[a,-b;b,a]*v;
+                case 0 % interior
+                    dvdt=[a,-b;b,a]*v; % Jacobian for interior, from eq. 5.44
                 case 1 % x=1 wall
                     dxdt(1)=min(dxdt(1),0); % only allow negative dx/dt or else zero
-                    dvdt=[0,0;0,a]*v;
+                    dvdt=[0,0;0,a]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                     % dvdt(2)=dvdt(2)+y(2);
                 case 2 % y=1 wall
                     dxdt(2)=min(dxdt(2),0); % only allow negative dy/dt or else zero
-                    dvdt=[a,0;0,0]*v;
+                    dvdt=[a,0;0,0]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
                     % dvdt(1)=dvdt(1)+y(1);
                 case 3 % x=-1 wall
                     dxdt(1)=max(dxdt(1),0); % only allow positive dx/dt or else zero
-                    dvdt=[0,0;0,a]*v;
+                    dvdt=[0,0;0,a]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                     % dvdt(2)=dvdt(2)+y(2);
                 case 4 % y=-1 wall
                     dxdt(2)=max(dxdt(2),0); % only allow positive dy/dt or else zero
-                    dvdt=[a,0;0,0]*v;
+                    dvdt=[a,0;0,0]*v;  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
                     % dvdt(1)=dvdt(1)+y(1);
             end
             % add nonhomogeneous terms to variational problem for sustained perturbation
@@ -564,67 +556,24 @@ classdef LC_in_square < handle
             dydt=[dxdt;dvdt];
         end
         
-        function dzdt=LC_ODE_prc(model,t,z,xmat) % flow on the interior
+        function dzdt=LC_ODE_prc(model,t,z,xmat)
             
             xvec = interp1(model.reverseTspan,xmat,t);
             
             [a, b] = model.alphaFcn(xvec(1),xvec(2));
-            DF=[a,-b;b,a];
             switch model.checkdomain(xvec)
+                case 0 % interior
+                    DF=[a,-b;b,a]; % Jacobian for interior, from eq. 5.44
                 case 1 % x=1 wall
-                    %dxdt(1)=min(dxdt(1),0); % only allow negative dx/dt or else zero
-                    DF=[0,0;0,a];
+                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                 case 2 % y=1 wall
-                    %dxdt(2)=min(dxdt(2),0); % only allow negative dy/dt or else zero
-                    DF=[a,0;0,0];
+                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
                 case 3 % x=-1 wall
-                    %dxdt(1)=max(dxdt(1),0); % only allow positive dx/dt or else zero
-                    DF=[0,0;0,a];
+                    DF=[0,0;0,a];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [0,0;b,a]  ?]
                 case 4 % y=-1 wall
-                    %dxdt(2)=max(dxdt(2),0); % only allow positive dy/dt or else zero
-                    DF=[a,0;0,0];
+                    DF=[a,0;0,0];  % Jacobian for sliding region, from eqs. 5.44 and 4.34  [JPG: should it be [a,-b;0,0] ?]
             end
-            dzdt=-DF'*[z(1); z(2)];
-        end
-        
-        function [value,isterminal,direction]=wall1_exit_ext(model,~,y)
-            % when the *unconstrained* value of dx/dt decreases through zero, return
-            y(1)=1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(2)-a;
-            isterminal=1;
-            direction=1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall2_exit_ext(model,~,y)
-            % when the *unconstrained* value of dy/dt decreases through zero, return
-            y(2)=1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(1)+a;
-            isterminal=1;
-            direction=-1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall3_exit_ext(model,~,y)
-            % when the *unconstrained* value of dx/dt increases through zero, return
-            y(1)=-1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(2)+a;
-            isterminal=1;
-            direction=-1;
-            
-        end
-        
-        function [value,isterminal,direction]=wall4_exit_ext(model,~,y)
-            % when the *unconstrained* value of dy/dt increases through zero, return
-            y(2)=-1;
-            [a, b] = model.alphaFcn(y(1),y(2));
-            value=b*y(1)-a;
-            isterminal=1;
-            direction=1;
-            
+            dzdt=-DF'*[z(1); z(2)]; % adjoint equation, eq. 2.7
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -693,7 +642,7 @@ classdef LC_in_square < handle
                     case 4
                         n = nb;
                 end
-                S1=eye(2)+(F_plus-F_minus)*n/(n*F_minus); % saltation matrix, eq. 3.22
+                S1=eye(2)+(F_plus-F_minus)*n/(n*F_minus); % saltation matrix, eq. 3.24
                 model.y0(3:4) = [YE(3),YE(4)]*S1';
             end
             
