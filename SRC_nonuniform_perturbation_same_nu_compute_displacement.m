@@ -1,3 +1,6 @@
+function [normNumDisp,normu,normdiff] = SRC_nonuniform_perturbation_same_nu_compute_displacement(epsvec)
+% Utility function for fig10.m
+
 % Solve the nonhomogeneous variational equation for the iSRC using uniform rescaling
 % under a nonuniform static perturbation that is only present above the wedge
 %        (alpha, omega) -> (alpha + eps, omega - eps)
@@ -18,7 +21,6 @@ xinit=[1,0];  % initial condition for both perturbed and unperturbed limit cycle
 x_in=[0.811100985386121   0.811100985460158]; % coordinate of the unperturbed entry point into the region 1
 T0_above=1.691545739499871; % unperturbed total time spent in region I
 
-epsvec = (0.00006:0.01:0.1);
 normu = zeros(size(epsvec));       % norm of approximated displacements
 normNumDisp = zeros(size(epsvec)); % norm of actual displacements
 normdiff = zeros(size(epsvec));    % relative difference between the actual norm and approximated norm
@@ -67,23 +69,5 @@ for i=1:length(epsvec)
     normdiff(i)=(normNumDisp(i)-normu(i))/normNumDisp(i);     
 end
 
-%% Plot the norm of the actual displacements and the approximated displacements (eps*iSRC) vs eps
-figure
-plot(epsvec,normNumDisp,'r','linewidth',2)
-hold on
-plot(epsvec,normu,'r:','linewidth',2)
-%plot(log(epsvec),log(normdiff),'linewidth',2)
-xlabel('$\varepsilon$','interpreter','latex','fontsize',30)
-ylabel('$\rm norm(displacement)$','interpreter','latex','fontsize',30)
-set(gca,'FontSize',18)
-
-% Plot the relative difference between the norms vs eps
-figure
-plot(epsvec,normdiff,'r','linewidth',2)
-% hold on
-% plot(epsvec,normdiff1,'r','linewidth',2)
-xlabel('$\varepsilon$','interpreter','latex','fontsize',30)
-ylabel('$\rm relative difference$','interpreter','latex','fontsize',30)
-set(gca,'FontSize',18)
-
+end
 

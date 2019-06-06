@@ -1,12 +1,18 @@
+function [normNumDisp,normu,normdiff] = SRC_nonuniform_perturbation_piecewise_nu_compute_displacement(epsvec)
+% Utility function for fig10.m
+
 % Solve the nonhomogeneous variational equation for the iSRC using piecewise uniform rescaling 
 % under a nonuniform static perturbation that is only present above the wedge
 %        (alpha, omega) -> (alpha + eps, omega - eps)
+
 % !! Need to run local_TRC_plot to find T1_above and T1_below, linear shifts in time in regions above and below the wedge
 
 %  Region I: above wedge, Region II: below wedge
 
 %  For eps over (0.00006:0.01:0.1), compute the norms of the actual (LC_eps - LC) and
 %  approximated (eps*iSRC) displacements between perturbed and unperturbed LC solutions
+
+% epsvec = (0.00006:0.01:0.1);     % perturbation size
 
 T0=6.766182958186305; % intrinsic oscillator period
 xinit=[1,0];  % initial condition for LC
@@ -22,7 +28,7 @@ T1_above=2.167992616327751; % obtained from local_TRC_plot
 nu_above=T1_above/T0_above; % obtained from local_TRC_plot
 nu_below=(T1-T1_above)/T0_below; % compute the nu in the region below the wedge
 
-epsvec = (0.00006:0.01:0.1);     % perturbation size
+
 normu       = zeros(size(epsvec));     % norm of approximated displacements
 normNumDisp = zeros(size(epsvec));     % norm of actual displacements
 normdiff    = zeros(size(epsvec));     % relative difference between the actual norm and approximated norm
@@ -101,19 +107,5 @@ for i=1:length(epsvec)
         
 end
 
-%% Plot the norm of the actual displacements and the approximated displacements (eps*iSRC) vs eps
-figure
-plot(epsvec,normNumDisp,'b','linewidth',2)
-hold on
-plot(epsvec,normu,'b:','linewidth',2)
-xlabel('$\varepsilon$','interpreter','latex','fontsize',30)
-ylabel('$\rm norm(displacement)$','interpreter','latex','fontsize',30)
-set(gca,'FontSize',18)
-
-% Plot the relative difference between the norms vs eps
-figure
-plot(epsvec,normdiff,'b','linewidth',2)
-xlabel('$\varepsilon$','interpreter','latex','fontsize',30)
-ylabel('relative difference in norm','interpreter','latex','fontsize',30)
-set(gca,'FontSize',18)
+end
 
