@@ -107,8 +107,8 @@ plot([T0_above_pert_rescale, T0_above_pert_rescale], [-0.2 0.2],'m','linewidth',
 plot([T0_above, T0_above], [-0.2 0.2],'b:','linewidth',2)
 xlim([0 T0])
 ylim([-0.2 0.2])
-xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
-ylabel('$x_{\varepsilon}(t)-x(t)$','interpreter','latex','fontsize',25)
+xlabel('\rm time','interpreter','latex','fontsize',25)
+ylabel('$x_{\varepsilon}(\tau(t))-x(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
 model.draw_wall_contact_rectangles
@@ -122,8 +122,8 @@ plot([T0_above_pert_rescale, T0_above_pert_rescale], [-0.2 0.2],'m','linewidth',
 plot([T0_above, T0_above], [-0.2 0.2],'b:','linewidth',2)
 xlim([0 T0])
 ylim([-0.2 0.2])
-xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
-ylabel('$y_{\varepsilon}(t)-y(t)$','interpreter','latex','fontsize',25)
+xlabel('\rm time','interpreter','latex','fontsize',25)
+ylabel('$y_{\varepsilon}(\tau(t))-y(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
 model.draw_wall_contact_rectangles
