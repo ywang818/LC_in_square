@@ -67,7 +67,7 @@ plot(epsvec,normu,'r:','linewidth',3)
 xlim([0 0.01])
 ylim([0 0.515])
 xlabel('$\varepsilon$','interpreter','latex','fontsize',30)
-ylabel('norm $\rm (\gamma_{\varepsilon}(t)-\gamma(t))$','interpreter','latex','fontsize',30)
+ylabel('norm $\rm (\gamma_{\varepsilon}(\tau(t))-\gamma(t))$','interpreter','latex','fontsize',30)
 legend({' actual',' approximation'},'Interpreter','latex','Location','northwest')
 set(gca,'FontSize',18)
 
