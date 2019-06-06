@@ -2,26 +2,31 @@
 % Generate local timing response curve for the region I that is above the wedge, usng the function find_prc in LC_in_square
 % and compute the piecewise relative change in frequency nu_above_wedge and nu_below_wedge
 
-
 alpha=0.2;
 T0=6.766182958128617;
 
+% Region I: 
+% above Sigma^in: y-x=0 for y nonnegative, and above Sigma^out: y+x=0 for y nonnegative
+y=(0:0.1:1.5);
+x_sigma_in = y; % define the entry boundary of region I
+x_sigma_out = -y; % define the exit boundary of region II. 
+
 % xinit=[0.6547,1];
-% model = LC_in_square(false, xinit);
+% model = LC_in_square('varOn', 'false', 'xinit', xinit);
 % model.solve;
-% ind_close_end=(abs(model.yext(:,1)+model.yext(:,2))<5e-3) & (model.yext(:,2)>=0);
-% ind_close_ini=(abs(model.yext(:,1)-model.yext(:,2))<5e-3) & (model.yext(:,2)>=0);
-% x_out=model.yext(ind_close_end,:); % the exit point from region 1
-% x_in=model.yext(ind_close_ini,:); % the entry point into region 1
+% ind_out=(abs(model.yext(:,1)+model.yext(:,2))<5e-3) & (model.yext(:,2)>=0);
+% ind_in=(abs(model.yext(:,1)-model.yext(:,2))<5e-3) & (model.yext(:,2)>=0);
+% x_out=model.yext(ind_out,:); % the exit point from region 1
+% x_in=model.yext(ind_in,:); % the entry point into region 1
 
 x_in=[0.811047481339979   0.811181234361245];  % the entry point into region 1
 x_out=[-0.813550109151894   0.809463778128291]; % the exit point from region 1
-model = LC_in_square('xinit', x_out);  % Compute the solution trajectory from x_out
-model.solve;
+model0 = LC_in_square('xinit', x_out);  % Compute the solution trajectory from x_out
+model0.solve;
 
 % Compute the total time spent in the region I, that is above the wedge
-ind_above_wedge=(model.yext(:,1) + model.yext(:,2) >=0) & (model.yext(:,2) - model.yext(:,1) >=0);
-time_above_wedge=model.t(ind_above_wedge);
+ind_above_wedge=(model0.yext(:,1) + model0.yext(:,2) >=0) & (model0.yext(:,2) - model0.yext(:,1) >=0);
+time_above_wedge=model0.t(ind_above_wedge);
 T0_above_wedge=time_above_wedge(end)-time_above_wedge(1); % total time spent in region I
 
 % To only compute the lTRC in region I, compute the solution from x_in to x_out
@@ -61,11 +66,31 @@ disp(nu_above_wedge)
 
 %%
 figure
-set(gcf,'Position',[0 0 720 520])
+set(gcf,'Position',[50 800 800 360])
+subplot(1,2,1)
+plot(model0.yext(:,1),model0.yext(:,2),'k','linewidth',2)
+hold on
+plot(x_sigma_in,y,'g--','linewidth',2)
+plot(x_sigma_out,y,'b--','linewidth',2)
+text(0.78,0.95,'$x^{\rm in}$','Interpreter','latex','FontSize',18,'Color','g')
+text(-0.85,0.95,'$x^{\rm out}$','Interpreter','latex','FontSize',18,'Color','b')
+text(-0.3,0.6,'Region I','Interpreter','latex','FontSize',18,'Color','k')
+text(-0.3,-0.5,'Region II','Interpreter','latex','FontSize',18,'Color','k')
+text(0.45,0.3,'$\Sigma^{\rm in}$','Interpreter','latex','FontSize',18,'Color','g')
+text(-0.7,0.3,'$\Sigma^{\rm out}$','Interpreter','latex','FontSize',18,'Color','b')
+plot(x_in(1),x_in(2),'ko','MarkerEdgeColor','k','MarkerFaceColor','g','MarkerSize',18)
+plot(x_out(1),x_out(2),'ko','MarkerEdgeColor','k','MarkerFaceColor','b','MarkerSize',18)
+xlabel('$x$','interpreter','latex','fontsize',30)
+ylabel('$y$','interpreter','latex','fontsize',30,'rot',0)
+set(gca,'FontSize',18)
+axis([-1.1 1.1 -1.1 1.1])
+axis square
+
+subplot(1,2,2)
 plot(model.prct,model.prc(:,1:2),'linewidth',2)
 xlim([0 model.tmax])
 xlabel('$\rm time$','interpreter','latex','fontsize',30)
-ylabel('$\eta$','interpreter','latex','fontsize',30,'rot',0)
+ylabel('$\eta^{\rm I}$','interpreter','latex','fontsize',30,'rot',0)
 legend('x-direction','y-direction','AutoUpdate','off')
 title('$\rm lTRC\ in\ region\ I$','interpreter','latex','fontsize',30)
 % grid on
@@ -73,6 +98,6 @@ set(gca,'FontSize',18)
 hold on
 plot([T0_above_wedge T0_above_wedge], [-2 2],'b-.','linewidth',2)
 plot([0 0], [-2 2],'g-.','linewidth',2)
-text(0.03,-1.5,'$t_A$','Interpreter','latex','FontSize',30,'Color','g')
-text(1.55,-1.5,'$t_B$','Interpreter','latex','FontSize',30,'Color','b')
+text(0.03,-1.5,'$t_{\rm in}$','Interpreter','latex','FontSize',30,'Color','g')
+text(1.55,-1.5,'$t_{\rm out}$','Interpreter','latex','FontSize',30,'Color','b')
 model.draw_wall_contact_rectangles
