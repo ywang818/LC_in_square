@@ -20,7 +20,7 @@ plot(epsvec,normu_pw,'b:','linewidth',2)
 
 
 xlabel('$\varepsilon$','interpreter','latex','fontsize',30)
-ylabel('$\rm norm(displacement)$','interpreter','latex','fontsize',30)
+ylabel('norm$(\gamma_{\varepsilon}(\tau(t)-\gamma(t))$','interpreter','latex','fontsize',30)
 set(gca,'FontSize',18)
 axis([0 0.1 0 6])
 legend('uniform rescaling - actual','uniform rescaling - approximation','piecewise uniform rescaling - actual','piecewise uniform rescaling - approximation')
