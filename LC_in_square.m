@@ -332,7 +332,22 @@ classdef LC_in_square < handle
         
         function plot(model)
             figure
+            set(gcf,'Position',[50 800 800 360])
+            subplot(1,2,1)
+            plot(model.t,model.yext(:,1:2),'linewidth',2)
+            legend('x-direction','y-direction','Location','southwest')
+            xlim([0 model.tmax])
+            ylim([-1.1 1.1])
+            set(gca,'FontSize',18)
+            xlabel('$\rm time$','interpreter','latex','fontsize',25)
+            model.draw_wall_contact_rectangles
+            
+            subplot(1,2,2)
             plot(model.yext(:,1),model.yext(:,2),'k','linewidth',2)
+            hold on
+            plot([-1 1],[-1 -1],'b',[-1 1],[1 1],'b')
+            plot([-1 -1],[-1 1],'b',[1 1],[-1 1],'b')
+            
             axis([-1.1 1.1 -1.1 1.1])
             
             if model.varOn
