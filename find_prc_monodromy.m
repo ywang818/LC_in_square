@@ -1,4 +1,5 @@
 function M=find_prc_monodromy(model)
+% Utility function for Fig5B_prc_plot.m
 % This function finds the monodromy matrix associated with the iPRC
 
 zinit_matrix=eye(2);
