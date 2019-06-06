@@ -119,11 +119,11 @@ classdef LC_in_square < handle
     %        6.7662
         
     properties(Constant)
-        reltol = 1e-13; % ode15s tolerance
-        abstol = 1e-13; % ode15s tolerance
+        reltol = 1e-12; % ode15s tolerance
+        abstol = 1e-12; % ode15s tolerance
     end
     
-    properties(SetAccess = protected)
+    properties(SetAccess = protected)  
         xinit
         vinit
         yinit
@@ -133,6 +133,7 @@ classdef LC_in_square < handle
         nu_below
         nu_above
         varOn
+        isochronOn
         tmax
         alpha
         omega
@@ -179,6 +180,8 @@ classdef LC_in_square < handle
                 {'numeric'},{'nonempty'}));
             addOptional(p, 'eps', 0, @(x)validateattributes(x,...
                 {'numeric'},{'nonempty'}));
+            addOptional(p, 'isochronOn', false, @(x)validateattributes(x,...
+                {'logical'},{'nonempty'}));
             
             parse(p, varargin{:})
             
@@ -205,6 +208,7 @@ classdef LC_in_square < handle
             model.varOn = p.Results.varOn;            
             model.xinit = reshape(model.xinit,1,length(model.xinit));
             model.vinit = reshape(model.vinit,1,length(model.vinit));
+            model.isochronOn = p.Results.isochronOn;
             
             model.domain = 0;
             if model.varOn
@@ -256,8 +260,14 @@ classdef LC_in_square < handle
                         [tnew,ynew,TE,YE,~] = ode45(model_ode,[model.t0,model.tmax],model.y0,model_opt); % integrate forwards in time until the wall is exited
                         model.updateSolution(tnew,ynew);
                         model.updateCurrent(tnew,ynew,TE,YE,0);
+
                         model.storeJump(TE); % save exit time and jump matrix needed for later finding PRC
                         model.domain=0; % new domain is the interior
+
+                        if model.isochronOn
+                            return;   % For the purpose of computing isochron, stop the code when the trajectory hits the wall x=1
+                        end
+                            
                     case 2 % y=1 wall
                         if model.varOn
                             model.multiplySaltation(TE,YE,'enter');
@@ -294,25 +304,30 @@ classdef LC_in_square < handle
         
         function plot_prc(model)
             figure
+            set(gcf,'Position',[0 0 720 800])
             subplot(2,1,1)
             plot(model.t,model.yext(:,1:2),'linewidth',2)
-            legend('x','y')
+            legend('x-direction','y-direction','Location','southwest')
             xlim([0 model.tmax])
+            ylim([-1.1 1.1])
             set(gca,'FontSize',18)
-            xlabel('Time','interpreter','latex','fontsize',25)
+            xlabel('$\rm time$','interpreter','latex','fontsize',25)
+            model.draw_wall_contact_rectangles
+            grid on
             
             subplot(2,1,2)
             plot(model.prct,model.prc(:,1:2),'linewidth',2)
-            legend('Z_x','Z_y')
             xlim([0 model.tmax])
+            ylim([-1.5 1.5])
             xlabel('Time')
-            legend('x-direction','y-direction')
-            title('Phase response curve')
+            legend('x-direction','y-direction','Location','northwest')
+            title('Infinitesimal Phase Response Curve')
             grid on
             
             set(gca,'FontSize',18)
-            xlabel('Time','interpreter','latex','fontsize',25)
-            ylabel('iPRC','interpreter','latex','fontsize',25)
+            xlabel('$\rm time$','interpreter','latex','fontsize',25)
+            ylabel('$Z$','interpreter','latex','fontsize',25,'rot',0)
+            model.draw_wall_contact_rectangles
         end
         
         function plot(model)
@@ -329,7 +344,31 @@ classdef LC_in_square < handle
                 ylabel('v1,v2')
                 legend('v1','v2')
                 grid on
+                model.draw_wall_contact_rectangles
             end
+        end
+        
+        function draw_wall_contact_rectangles(model, yrange)
+            if ~exist('yrange', 'var')
+                yrange = ylim;              % by default use current ylim
+            end
+            onwall = ...                    % logical array for when any of these are true:
+                     model.yext(:,1) ==  1 | ... % x=1
+                     model.yext(:,2) ==  1 | ... % y=1
+                     model.yext(:,1) == -1 | ... % x=-1
+                     model.yext(:,2) == -1;      % y=-1
+            values = zeros(size(onwall));   % rectangle height as a function of time
+            values(~onwall) = yrange(1);    % set low value
+            values( onwall) = yrange(2);    % set high value
+            hold on;                        % don't remove existing plot elements
+            h = area(model.t, values, ...   % draw rectangles
+                yrange(1), ...              % fill from bottom of plot instead of from 0
+                'FaceColor', 'k', ...       % black
+                'FaceAlpha', 0.1, ...       % transparent
+                'LineStyle', 'none', ...    % no border
+                'ShowBaseLine', 'off', ...  % no baseline
+                'HandleVisibility', 'off'); % prevent this object from being added to legends
+            uistack(h, 'bottom');           % put the rectangles behind all other plot elements
         end
         
         function T = findPeriod(model)

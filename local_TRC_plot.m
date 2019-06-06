@@ -61,12 +61,13 @@ disp(nu_above_wedge)
 
 %%
 figure
+set(gcf,'Position',[0 0 720 520])
 plot(model.prct,model.prc(:,1:2),'linewidth',2)
-legend('Z_x','Z_y')
 xlim([0 model.tmax])
-xlabel('$\rm time (ms)$','interpreter','latex','fontsize',30)
-legend('x-direction','y-direction')
-title('Local timing response curve')
+xlabel('$\rm time$','interpreter','latex','fontsize',30)
+ylabel('$\eta$','interpreter','latex','fontsize',30,'rot',0)
+legend('x-direction','y-direction','AutoUpdate','off')
+title('$\rm lTRC\ in\ region\ I$','interpreter','latex','fontsize',30)
 % grid on
 set(gca,'FontSize',18)
 hold on
@@ -74,3 +75,4 @@ plot([T0_above_wedge T0_above_wedge], [-2 2],'b-.','linewidth',2)
 plot([0 0], [-2 2],'g-.','linewidth',2)
 text(0.03,-1.5,'$t_A$','Interpreter','latex','FontSize',30,'Color','g')
 text(1.55,-1.5,'$t_B$','Interpreter','latex','FontSize',30,'Color','b')
+model.draw_wall_contact_rectangles

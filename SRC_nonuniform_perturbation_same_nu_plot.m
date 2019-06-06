@@ -63,6 +63,7 @@ displacement=x_pert_interp - model.yext(:,1:2);
  
 %% plot actual displacement obtained from numerical computation vs approximated disp using iSRC
 figure
+set(gcf,'Position',[0 0 720 520])
 subplot(2,1,1)
 plot(model.t,displacement(:,1),'k','linewidth',3)
 hold on
@@ -71,10 +72,11 @@ plot([T0_above_pert, T0_above_pert], [-0.2 0.2],'m','linewidth',2)
 plot([T0_above, T0_above], [-0.2 0.2],'b:','linewidth',2)
 xlim([0 T0])
 ylim([-0.2 0.2])
-xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
-ylabel('$x_{\varepsilon}(t)-x(t)$','interpreter','latex','fontsize',25)
+xlabel('\rm time','interpreter','latex','fontsize',25)
+ylabel('$x_{\varepsilon}(\tau(t))-x(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles
 
 title('Uniform rescaling','Interpreter','latex','FontWeight','normal','Fontsize',20)
 
@@ -86,8 +88,9 @@ plot([T0_above_pert, T0_above_pert], [-0.2 0.2],'m','linewidth',2)
 plot([T0_above, T0_above], [-0.2 0.2],'b:','linewidth',2)
 xlim([0 T0])
 ylim([-0.2 0.2])
-xlabel('\rm time (ms)','interpreter','latex','fontsize',25)
-ylabel('$y_{\varepsilon}(t)-y(t)$','interpreter','latex','fontsize',25)
+xlabel('\rm time','interpreter','latex','fontsize',25)
+ylabel('$y_{\varepsilon}(\tau(t))-y(t)$','interpreter','latex','fontsize',25)
 legend({'actual','approximation'},'Interpreter','latex')
 set(gca,'FontSize',18)
+model.draw_wall_contact_rectangles
 

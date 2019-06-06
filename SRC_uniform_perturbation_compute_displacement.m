@@ -2,7 +2,7 @@
 % under a uniform static perturbation: (alpha, omega) -> (alpha + eps, omega - eps)
 % !! Need to run prc_plot.m first to find nu1
 
-% For eps over (0.0001:0.001:0.01), compute the norms of the actual (LC_eps - LC) and
+% For eps over (0:0.001:0.01), compute the norms of the actual (LC_eps - LC) and
 % approximated (eps*iSRC) displacements between perturbed and unperturbed LC solutions
 
 T0=6.766182958128617;  % intrinsic period of the oscillator
@@ -20,7 +20,7 @@ omega_pert = omega - eps;
 yinit_pert=[1, alpha_pert/omega_pert]; % liftoff point for perturbed trajectory
 vinit = (yinit_pert-yinit)/eps;        % initial value for SRC
 
-epsvec = (0.0001:0.001:0.01);
+epsvec = (0:0.001:0.01);
 normdiff = zeros(size(epsvec));  % norm of actual displacements 
 normu = zeros(size(epsvec));     % norm of approximated displacements 
 
@@ -59,13 +59,16 @@ end
 
 %% Plot the norm of the actual displacements and the approximated displacements (eps*iSRC) vs eps
 figure
+set(gcf,'Position',[0 0 720 520])
 plot(epsvec,normdiff,'k','linewidth',3)
 hold on
 plot(epsvec,normu,'r:','linewidth',3)
 %plot(log(epsvec),log(normdiff),'linewidth',2)
+xlim([0 0.01])
+ylim([0 0.515])
 xlabel('$\varepsilon$','interpreter','latex','fontsize',30)
-ylabel('norm $\rm (\gamma_{\varepsilon}(t)-\gamma(t))$','interpreter','latex','fontsize',30)
-legend({' actual',' approximation'},'Interpreter','latex')
+ylabel('norm $\rm (\gamma_{\varepsilon}(\tau(t))-\gamma(t))$','interpreter','latex','fontsize',30)
+legend({' actual',' approximation'},'Interpreter','latex','Location','northwest')
 set(gca,'FontSize',18)
 
 
