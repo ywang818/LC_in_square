@@ -303,30 +303,23 @@ classdef LC_in_square < handle
         end
         
         function plot_prc(model)
-            figure
-            set(gcf,'Position',[0 0 720 800])
-            subplot(2,1,1)
-            plot(model.t,model.yext(:,1:2),'linewidth',2)
-            legend('x-direction','y-direction','Location','southwest')
-            xlim([0 model.tmax])
-            ylim([-1.1 1.1])
-            set(gca,'FontSize',18)
-            xlabel('$\rm time$','interpreter','latex','fontsize',25)
-            model.draw_wall_contact_rectangles
-            grid on
             
-            subplot(2,1,2)
+            figure
             plot(model.prct,model.prc(:,1:2),'linewidth',2)
             xlim([0 model.tmax])
             ylim([-1.5 1.5])
+            text(0.85,0.1,'$y=+1$','Interpreter','latex','FontSize',18,'Color','k')
+            text(2.52,0.1,'$x=-1$','Interpreter','latex','FontSize',18,'Color','k')
+            text(4.2,0.1,'$y=-1$','Interpreter','latex','FontSize',18,'Color','k')
+            text(5.9,0.1,'$x=+1$','Interpreter','latex','FontSize',18,'Color','k')
+            
             xlabel('Time')
             legend('x-direction','y-direction','Location','northwest')
             title('Infinitesimal Phase Response Curve')
-            grid on
             
             set(gca,'FontSize',18)
             xlabel('$\rm time$','interpreter','latex','fontsize',25)
-            ylabel('$Z$','interpreter','latex','fontsize',25,'rot',0)
+            ylabel('$\textbf{z}$','interpreter','latex','fontsize',25,'rot',0)
             model.draw_wall_contact_rectangles
         end
         
