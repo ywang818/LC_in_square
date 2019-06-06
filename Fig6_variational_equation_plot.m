@@ -1,6 +1,5 @@
-% Generate solutions to the homogeneous variatinal equation 
-% with ICs [-1, 0] and [0, 1] at the liftoff point on the wall x=1
-alpha=0.2;
+% Generate figure 6: solutions to the homogeneous variatinal equation 
+
 S=[];
 alpha=0.2;
 T0=6.766182958128606; % intrinsic period of the oscillator for alpha=0.2
@@ -63,18 +62,18 @@ set(gca,'FontSize',18)
 text(-2,0.9, '$\textbf{(C)}$','Interpreter','latex','FontSize',28,'Color','k')
 ylabel('$y$','interpreter','latex','fontsize',30,'rot',0)
 
-.draw_wall_contact_rectangles
+model1.draw_wall_contact_rectangles
 
 subplot(2,2,4)
-plot(modele2.t,displacement(:,2), 'k', 'linewidth',2)
+plot(model1.t,displacement(:,2), 'k', 'linewidth',2)
 hold on
-plot(modele2.t, modele2.yext(:,4),'r:', 'linewidth',3)
+plot(model1.t, model1.yext(:,4),'r:', 'linewidth',3)
 xlim([0 T0])
 ylim([-0.15 0.15])
 xlabel('$\rm time$','interpreter','latex','fontsize',25)
 legend('actual','approximation','Location','north')
 set(gca,'FontSize',18)
 ylabel('$\textbf{u}_y$','interpreter','latex','fontsize',25,'rot',0)
-modele2.draw_wall_contact_rectangles
+model1.draw_wall_contact_rectangles
 
 text(-2,0.13, '$\textbf{(D)}$','Interpreter','latex','FontSize',28,'Color','k')
