@@ -64,7 +64,7 @@ figure
 set(gcf,'Position',[0 0 720 520])
 plot(model.prct,model.prc(:,1:2),'linewidth',2)
 xlim([0 model.tmax])
-xlabel('$\rm time (ms)$','interpreter','latex','fontsize',30)
+xlabel('$\rm time$','interpreter','latex','fontsize',30)
 ylabel('$\eta$','interpreter','latex','fontsize',30,'rot',0)
 legend('x-direction','y-direction','AutoUpdate','off')
 title('$\rm lTRC\ in\ region\ I$','interpreter','latex','fontsize',30)
